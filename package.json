@@ -4,11 +4,37 @@
   "private": true,
   "description": "PomoTime desktop app (Linux/Windows) using Tauri 2",
   "scripts": {
+    "dev:web": "vite --host 0.0.0.0 --port 1420 --strictPort",
+    "build:web": "vite build && node -e \"require('fs').copyFileSync('app-config.js','dist/app-config.js')\"",
+    "preview:web": "vite preview --host 0.0.0.0 --port 4173 --strictPort",
     "dev": "tauri dev",
     "build": "tauri build",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest",
+    "test:rust": "npm run build:web && cargo test --manifest-path src-tauri/Cargo.toml",
+    "test:all": "npm run typecheck && npm run test && npm run test:rust",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "task:complete": "bash scripts/task_complete.sh"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.0.0"
+    "@tauri-apps/cli": "^2.0.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-v8": "^4.1.7",
+    "jsdom": "^29.1.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.14",
+    "vitest": "^4.1.7"
+  },
+  "dependencies": {
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   }
 }

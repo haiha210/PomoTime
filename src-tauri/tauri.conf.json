@@ -4,8 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.pomotime.app",
   "build": {
-    "beforeDevCommand": "",
-    "beforeBuildCommand": "",
+    "beforeDevCommand": "npm run dev:web",
+    "beforeBuildCommand": "npm run build:web",
+    "devUrl": "http://localhost:1420",
     "frontendDist": "../dist"
   },
   "app": {

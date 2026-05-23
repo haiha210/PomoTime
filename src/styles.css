@@ -1,0 +1,31 @@
+:root {
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: #111827;
+  background: #f3f4f6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.app-container {
+  max-width: 720px;
+  margin: 64px auto;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.subtitle {
+  color: #4b5563;
+}
+
+.status {
+  margin-top: 16px;
+  font-weight: 600;
+}

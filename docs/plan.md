@@ -23,7 +23,7 @@ Nguon yeu cau chi tiet: docs/spec.md
 ### Chua xong / can uu tien
 - Linux prerequisites cho Tauri build
 - Frontend architecture dung React + TypeScript strict
-- Chuyen localStorage sang SQLite qua Tauri commands
+- Chuyen localStorage sang PostgreSQL qua Tauri commands
 - Test tu dong (unit/integration/e2e) dat >= 80% core coverage
 - CI pipeline cho format/lint/test/build
 
@@ -55,10 +55,10 @@ Dieu kien hoan thanh:
 - Khong phu thuoc vao file prototype cho runtime
 
 ## Giai doan 2 - Data layer thuc te (4-6 ngay)
-Muc tieu: bo localStorage, dua du lieu vao SQLite qua Rust commands.
+Muc tieu: bo localStorage, dua du lieu vao PostgreSQL qua Rust commands.
 
 Cong viec:
-- Thiet ke schema SQLite: goals, sessions, subjects, weekly_targets
+- Thiet ke schema PostgreSQL: goals, sessions, subjects, weekly_targets
 - Tao migration
 - Viet repository + service trong Rust
 - Tao Tauri commands cho CRUD va thong ke
@@ -103,9 +103,9 @@ P0:
 - Chot pipeline build frontend -> dist
 
 P1:
-- SQLite schema + migration
+- PostgreSQL schema + migration
 - Tauri commands cho sessions/goals/subjects
-- Chuyen persistence tu localStorage sang SQLite
+- Chuyen persistence tu localStorage sang PostgreSQL
 
 P2:
 - Hoan thien dashboard/statistics projection
@@ -142,4 +142,4 @@ Moi phase duoc xem la done khi:
 
 1. Cai Linux prerequisites de mo blocker build
 2. Scaffold React + TypeScript va noi vao Tauri build
-3. Bat dau Giai doan 2: thiet ke schema SQLite + Tauri commands
+3. Bat dau Giai doan 2: thiet ke schema PostgreSQL + Tauri commands

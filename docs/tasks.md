@@ -29,7 +29,7 @@ Task nao lien quan build/test phai co command validate.
 
 ## M0 - Mo blocker moi truong (1-2 ngay)
 
-[ ] TSK-0001 (P0) Cai Linux prerequisites cho Tauri
+[~] TSK-0001 (P0) Cai Linux prerequisites cho Tauri
 Phu thuoc: khong
 Dau ra: may local co day du system libs de build Tauri
 Checklist:
@@ -38,8 +38,11 @@ Checklist:
 Nghiem thu:
 - cargo check --manifest-path src-tauri/Cargo.toml pass
 - npm run dev khong fail do thieu library he thong
+Ghi chu trang thai:
+- Da xac nhan pkg-config/webkit2gtk/gtk3/ayatana-appindicator3/librsvg OK.
+- Con thieu patchelf tren may local.
 
-[ ] TSK-0002 (P0) Xac nhan toolchain Node + Rust
+[x] TSK-0002 (P0) Xac nhan toolchain Node + Rust
 Phu thuoc: TSK-0001
 Dau ra: moi truong dev baseline on dinh
 Checklist:
@@ -57,7 +60,7 @@ Checklist:
 Nghiem thu:
 - Build complete voi exit code 0
 
-[ ] TSK-0004 (P0) Chot huong frontend React + TypeScript
+[x] TSK-0004 (P0) Chot huong frontend React + TypeScript
 Phu thuoc: TSK-0002
 Dau ra: quyet dinh stack duoc document
 Checklist:
@@ -66,9 +69,29 @@ Checklist:
 Nghiem thu:
 - docs/plan.md va docs/tasks.md khong mau thuan
 
+[x] TSK-0005 (P0) Thiet lap PostgreSQL local bang Docker
+Phu thuoc: khong
+Dau ra: local environment co DB Postgres chay bang docker compose
+Checklist:
+- Tao docker-compose.yml voi service postgres
+- Tao .env.example cho DATABASE_URL local
+- Tao scripts db:up/db:down/db:logs
+Nghiem thu:
+- docker compose up -d postgres chay duoc
+
+[x] TSK-0006 (P0) Chuan hoa flow task -> test -> commit -> push
+Phu thuoc: TSK-0002
+Dau ra: co script tu dong hoa cho moi task
+Checklist:
+- Tao script scripts/task_complete.sh
+- Tao npm script task:complete
+- Co test:all de gom frontend + rust tests
+Nghiem thu:
+- Co the goi npm run task:complete -- <TASK_ID> "message"
+
 ## M1 - Frontend React chinh quy (3-5 ngay)
 
-[ ] TSK-1001 (P0) Scaffold React + Vite + TypeScript
+[x] TSK-1001 (P0) Scaffold React + Vite + TypeScript
 Phu thuoc: TSK-0004
 Dau ra: source frontend that su ton tai (khong dung runtime tu file prototype)
 Checklist:
@@ -78,7 +101,7 @@ Checklist:
 Nghiem thu:
 - Frontend build tao ra dist/
 
-[ ] TSK-1002 (P0) Noi build frontend vao Tauri config
+[x] TSK-1002 (P0) Noi build frontend vao Tauri config
 Phu thuoc: TSK-1001
 Dau ra: luong build desktop dung frontend output dung cach
 Checklist:
@@ -116,9 +139,9 @@ Nghiem thu:
 - Khong co loi khi key trong (demo mode)
 - Co the init supabase client khi co key
 
-## M2 - Data layer that su voi SQLite + Tauri commands (4-6 ngay)
+## M2 - Data layer that su voi PostgreSQL + Tauri commands (4-6 ngay)
 
-[ ] TSK-2001 (P0) Chot schema SQLite v1
+[ ] TSK-2001 (P0) Chot schema PostgreSQL v1
 Phu thuoc: TSK-1002
 Dau ra: schema cho goals, weekly_targets, subjects, sessions
 Checklist:
@@ -127,7 +150,7 @@ Checklist:
 Nghiem thu:
 - Schema pass tao moi tren DB trong
 
-[ ] TSK-2002 (P0) Tao migration runner
+[ ] TSK-2002 (P0) Tao migration runner PostgreSQL
 Phu thuoc: TSK-2001
 Dau ra: co co che migrate DB local
 Checklist:
@@ -169,7 +192,7 @@ Checklist:
 Nghiem thu:
 - Frontend goi command thanh cong cho cac luong chinh
 
-[ ] TSK-2006 (P1) Migrate persistence tu localStorage sang SQLite
+[ ] TSK-2006 (P1) Migrate persistence tu localStorage sang PostgreSQL
 Phu thuoc: TSK-2005
 Dau ra: runtime khong phu thuoc localStorage cho core data
 Checklist:
@@ -304,8 +327,8 @@ Nghiem thu:
 
 ## 5. Task dang can lam ngay (Next 7 days)
 
-[ ] NOW-01 Hoan thanh TSK-0001 va TSK-0002
-[ ] NOW-02 Hoan thanh TSK-1001 va TSK-1002
+[~] NOW-01 Hoan thanh TSK-0001 va TSK-0002
+[x] NOW-02 Hoan thanh TSK-1001 va TSK-1002
 [ ] NOW-03 Bat dau TSK-2001 de khoa schema v1
 
 ## 6. Definition of Done cho moi task
