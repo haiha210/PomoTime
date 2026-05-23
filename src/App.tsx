@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 
+import { AppRouter } from "./app/AppRouter";
+import { isSupabaseConfigured } from "./core/config/supabaseConfig";
+import { logoutCurrentSession } from "./features/auth/authService";
+import type { AuthSession } from "./features/auth/authTypes";
 import { migrateLegacyLocalStorageData } from "./lib/legacyMigration";
 import { tauriCommands } from "./lib/tauriCommands";
 
 function App(): React.JSX.Element {
-  const hasSupabaseConfig = Boolean(
-    (window.POMOTIME_SUPABASE_URL || "").trim() &&
-      (window.POMOTIME_SUPABASE_ANON_KEY || "").trim()
-  );
+  const hasSupabaseConfig = isSupabaseConfigured();
+  const [session, setSession] = useState<AuthSession | null>(null);
   const [commandStatus, setCommandStatus] = useState("checking");
 
   useEffect(() => {
@@ -39,17 +41,20 @@ function App(): React.JSX.Element {
     };
   }, []);
 
+  function handleLogout(): void {
+    logoutCurrentSession()
+      .catch(() => undefined)
+      .finally(() => setSession(null));
+  }
+
   return (
-    <main className="app-container">
-      <h1>PomoTime</h1>
-      <p className="subtitle">React + Tauri desktop foundation is ready.</p>
-      <p data-testid="config-status" className="status">
-        Supabase config: {hasSupabaseConfig ? "configured" : "demo mode"}
-      </p>
-      <p data-testid="command-status" className="status">
-        Tauri command channel: {commandStatus}
-      </p>
-    </main>
+    <AppRouter
+      hasSupabaseConfig={hasSupabaseConfig}
+      commandStatus={commandStatus}
+      session={session}
+      onLogin={setSession}
+      onLogout={handleLogout}
+    />
   );
 }
 

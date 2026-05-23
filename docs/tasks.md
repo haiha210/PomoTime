@@ -111,7 +111,7 @@ Nghiem thu:
 - npm run dev mo app voi frontend moi
 - npm run build dung frontend output moi
 
-[ ] TSK-1003 (P1) Tao app shell va router views
+[x] TSK-1003 (P1) Tao app shell va router views
 Phu thuoc: TSK-1001
 Dau ra: khung man hinh theo spec
 Checklist:
@@ -119,8 +119,12 @@ Checklist:
 - Tao layout voi sidebar + topbar
 Nghiem thu:
 - Co the dieu huong qua tat ca views khong crash
+Ghi chu trang thai:
+- Da them router + shell layout trong src/app/AppRouter.tsx va src/app/MainLayout.tsx.
+- Da tao views auth/onboarding/dashboard/timer/history/stats/goals theo feature folders.
+- Da them test dieu huong frontend trong src/App.test.tsx.
 
-[ ] TSK-1004 (P1) Tach module theo feature/domain
+[x] TSK-1004 (P1) Tach module theo feature/domain
 Phu thuoc: TSK-1003
 Dau ra: cau truc de mo rong de dang
 Checklist:
@@ -128,8 +132,11 @@ Checklist:
 - Tao shared utilities cho date/time/format
 Nghiem thu:
 - Khong con 1 file frontend qua lon lam trung tam moi logic
+Ghi chu trang thai:
+- Da tach code frontend theo src/features, src/app, src/core, src/shared.
+- Da bo sung utility src/shared/utils/dateTime.ts cho logic format dung chung.
 
-[ ] TSK-1005 (P1) Ket noi runtime config Supabase
+[x] TSK-1005 (P1) Ket noi runtime config Supabase
 Phu thuoc: TSK-1003
 Dau ra: frontend doc config tu app-config.js
 Checklist:
@@ -138,6 +145,10 @@ Checklist:
 Nghiem thu:
 - Khong co loi khi key trong (demo mode)
 - Co the init supabase client khi co key
+Ghi chu trang thai:
+- Da them config loader src/core/config/supabaseConfig.ts voi fallback key legacy LEARNTIME.
+- Da them Supabase client bootstrap src/core/supabase/client.ts va auth service su dung runtime config.
+- Da them test config runtime trong src/core/config/supabaseConfig.test.ts.
 
 ## M2 - Data layer that su voi PostgreSQL + Tauri commands (4-6 ngay)
 
