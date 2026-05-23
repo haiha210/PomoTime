@@ -199,6 +199,20 @@ body {
   color: #415549;
 }
 
+.panel label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.panel input,
+.panel select {
+  border: 1px solid #b7c8b6;
+  border-radius: 10px;
+  padding: 9px 11px;
+  font: inherit;
+}
+
 .grid-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));

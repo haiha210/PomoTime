@@ -271,7 +271,7 @@ Ghi chu trang thai:
 - Da cap nhat Goals view voi luong list/detail/set active va cap nhat target theo tung weekday.
 - Da cap nhat Onboarding view de tao goal dau tien va xac dinh quick study mode theo session gan nhat.
 
-[ ] TSK-3003 (P1) Hoan thien timer state machine
+[x] TSK-3003 (P1) Hoan thien timer state machine
 Phu thuoc: TSK-2006
 Dau ra: timer dung voi start/pause/resume/stop
 Checklist:
@@ -280,6 +280,10 @@ Checklist:
 - Save session tai stop event
 Nghiem thu:
 - Duration khong sai lech khi pause/resume
+Ghi chu trang thai:
+- Da them timer state machine pure logic trong src/features/timer/timerMachine.ts.
+- Da implement UI timer start/pause/resume/stop va luu session vao DB khi stop.
+- Da them test timerMachine.test.ts cho do chinh xac duration khi pause/resume.
 
 [ ] TSK-3004 (P1) Hoan thien history CRUD + export
 Phu thuoc: TSK-2006

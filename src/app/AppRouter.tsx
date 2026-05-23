@@ -45,7 +45,7 @@ export function AppRouter({
           <Route element={<MainLayout commandStatus={commandStatus} session={session} onLogout={onLogout} />}>
             <Route path="/onboarding" element={<OnboardingView userId={session.userId} />} />
             <Route path="/dashboard" element={<DashboardView />} />
-            <Route path="/timer" element={<TimerView />} />
+            <Route path="/timer" element={<TimerView userId={session.userId} />} />
             <Route path="/history" element={<HistoryView />} />
             <Route path="/stats" element={<StatsView />} />
             <Route path="/goals" element={<GoalsView userId={session.userId} />} />
