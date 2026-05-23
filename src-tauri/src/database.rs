@@ -1,10 +1,16 @@
 use postgres::{Client, NoTls};
+use std::sync::Mutex;
 
 const DEFAULT_DATABASE_URL: &str = "postgresql://pomotime:pomotime@localhost:5432/pomotime";
 const MIGRATION_NAME: &str = "0001_init_postgres.sql";
 const MIGRATION_SQL: &str = include_str!("../migrations/0001_init_postgres.sql");
+static MIGRATION_GUARD: Mutex<()> = Mutex::new(());
 
 pub fn initialize_database() -> Result<(), String> {
+  let _guard = MIGRATION_GUARD
+    .lock()
+    .map_err(|_| "failed to lock migration guard".to_string())?;
+
   run_migrations(&resolve_database_url())
 }
 
