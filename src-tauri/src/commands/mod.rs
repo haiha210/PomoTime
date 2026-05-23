@@ -2,6 +2,7 @@ pub mod goal_commands;
 pub mod session_commands;
 pub mod stats_commands;
 pub mod subject_commands;
+pub mod weekly_target_commands;
 
 use serde::Serialize;
 

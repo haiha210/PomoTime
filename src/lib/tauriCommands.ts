@@ -26,6 +26,13 @@ export interface SubjectRecord {
   color?: string | null;
 }
 
+export interface WeeklyTargetRecord {
+  id: string;
+  goal_id: string;
+  weekday: number;
+  target_minutes: number;
+}
+
 export interface SessionRecord {
   id: string;
   user_id: string;
@@ -156,6 +163,25 @@ export const tauriCommands = {
 
   deleteGoal: (id: string): Promise<ApiResponse<DeleteResult>> =>
     callCommand("delete_goal", { id }),
+
+  setActiveGoal: (goalId: string): Promise<ApiResponse<GoalRecord>> =>
+    callCommand("set_active_goal", { goalId }),
+
+  listWeeklyTargets: (goalId: string): Promise<ApiResponse<WeeklyTargetRecord[]>> =>
+    callCommand("list_weekly_targets", { goalId }),
+
+  upsertWeeklyTarget: (
+    goalId: string,
+    weekday: number,
+    targetMinutes: number
+  ): Promise<ApiResponse<WeeklyTargetRecord>> =>
+    callCommand("upsert_weekly_target", {
+      input: {
+        goal_id: goalId,
+        weekday,
+        target_minutes: targetMinutes,
+      },
+    }),
 
   createSubject: (payload: SubjectPayload): Promise<ApiResponse<SubjectRecord>> =>
     callCommand("create_subject", {

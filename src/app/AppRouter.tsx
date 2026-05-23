@@ -43,12 +43,12 @@ export function AppRouter({
 
         {session ? (
           <Route element={<MainLayout commandStatus={commandStatus} session={session} onLogout={onLogout} />}>
-            <Route path="/onboarding" element={<OnboardingView />} />
+            <Route path="/onboarding" element={<OnboardingView userId={session.userId} />} />
             <Route path="/dashboard" element={<DashboardView />} />
             <Route path="/timer" element={<TimerView />} />
             <Route path="/history" element={<HistoryView />} />
             <Route path="/stats" element={<StatsView />} />
-            <Route path="/goals" element={<GoalsView />} />
+            <Route path="/goals" element={<GoalsView userId={session.userId} />} />
           </Route>
         ) : (
           <Route path="*" element={<Navigate to="/auth" replace />} />

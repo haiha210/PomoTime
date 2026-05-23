@@ -150,6 +150,59 @@ impl GoalRepository {
 
     Ok(deleted > 0)
   }
+
+  pub fn set_active(&self, goal_id: &str) -> Result<Option<Goal>, String> {
+    let mut client = connect(&self.database_url)?;
+    let mut tx = client
+      .transaction()
+      .map_err(|error| format!("failed to start set_active transaction: {error}"))?;
+
+    let user_row = tx
+      .query_opt(
+        "SELECT user_id FROM learning_goals WHERE id = ($1::text)::uuid",
+        &[&goal_id],
+      )
+      .map_err(|error| format!("failed to find goal owner: {error}"))?;
+
+    let Some(user_row) = user_row else {
+      tx.rollback()
+        .map_err(|error| format!("failed to rollback missing-goal transaction: {error}"))?;
+      return Ok(None);
+    };
+
+    let user_id: String = user_row.get(0);
+
+    tx.execute(
+      "UPDATE learning_goals SET is_active = FALSE, updated_at = NOW() WHERE user_id = $1",
+      &[&user_id],
+    )
+    .map_err(|error| format!("failed to clear active goals: {error}"))?;
+
+    let updated = tx
+      .query_opt(
+        "
+        UPDATE learning_goals
+        SET is_active = TRUE, updated_at = NOW()
+        WHERE id = ($1::text)::uuid
+        RETURNING
+          id::text,
+          user_id,
+          title,
+          description,
+          goal_type,
+          start_date::text,
+          end_date::text,
+          is_active
+        ",
+        &[&goal_id],
+      )
+      .map_err(|error| format!("failed to set active goal: {error}"))?;
+
+    tx.commit()
+      .map_err(|error| format!("failed to commit set_active transaction: {error}"))?;
+
+    Ok(updated.as_ref().map(map_goal))
+  }
 }
 
 fn map_goal(row: &Row) -> Goal {

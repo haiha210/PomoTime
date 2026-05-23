@@ -257,7 +257,7 @@ Ghi chu trang thai:
 - Da bo sung session restore luc startup (App.tsx + sessionStore.ts).
 - Da bo sung test cho login fail/success, restore session va logout routing trong src/App.test.tsx.
 
-[ ] TSK-3002 (P1) Hoan thien goals + onboarding
+[x] TSK-3002 (P1) Hoan thien goals + onboarding
 Phu thuoc: TSK-2006
 Dau ra: user moi co the tao goal va quick study ngay
 Checklist:
@@ -266,6 +266,10 @@ Checklist:
 - Quick Study default theo phien gan nhat
 Nghiem thu:
 - User moi tao goal dau tien va bat dau hoc trong 1 luong lien tuc
+Ghi chu trang thai:
+- Da bo sung command set_active_goal + list/upsert weekly targets trong backend.
+- Da cap nhat Goals view voi luong list/detail/set active va cap nhat target theo tung weekday.
+- Da cap nhat Onboarding view de tao goal dau tien va xac dinh quick study mode theo session gan nhat.
 
 [ ] TSK-3003 (P1) Hoan thien timer state machine
 Phu thuoc: TSK-2006

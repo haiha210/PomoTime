@@ -96,6 +96,32 @@ impl WeeklyGoalTargetRepository {
 
     Ok(deleted > 0)
   }
+
+  pub fn upsert(
+    &self,
+    goal_id: &str,
+    weekday: i16,
+    target_minutes: i32,
+  ) -> Result<WeeklyGoalTarget, String> {
+    let mut client = connect(&self.database_url)?;
+    let row = client
+      .query_one(
+        "
+        INSERT INTO weekly_goal_targets (goal_id, weekday, target_minutes, updated_at)
+        VALUES (($1::text)::uuid, $2, $3, NOW())
+        ON CONFLICT (goal_id, weekday)
+        DO UPDATE
+        SET
+          target_minutes = EXCLUDED.target_minutes,
+          updated_at = NOW()
+        RETURNING id::text, goal_id::text, weekday, target_minutes
+        ",
+        &[&goal_id, &weekday, &target_minutes],
+      )
+      .map_err(|error| format!("failed to upsert weekly goal target: {error}"))?;
+
+    Ok(map_weekly_target(&row))
+  }
 }
 
 fn map_weekly_target(row: &Row) -> WeeklyGoalTarget {
