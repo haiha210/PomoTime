@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { migrateLegacyLocalStorageData } from "./lib/legacyMigration";
 import { tauriCommands } from "./lib/tauriCommands";
 
 function App(): React.JSX.Element {
@@ -12,23 +13,26 @@ function App(): React.JSX.Element {
   useEffect(() => {
     let active = true;
 
-    tauriCommands.listGoals("demo-user").then((response) => {
-      if (!active) {
-        return;
-      }
+    migrateLegacyLocalStorageData("demo-user")
+      .catch(() => undefined)
+      .then(() => tauriCommands.listGoals("demo-user"))
+      .then((response) => {
+        if (!active) {
+          return;
+        }
 
-      if (response.success) {
-        setCommandStatus("connected");
-        return;
-      }
+        if (response.success) {
+          setCommandStatus("connected");
+          return;
+        }
 
-      if (response.error === "Tauri runtime is not available") {
-        setCommandStatus("web-preview");
-        return;
-      }
+        if (response.error === "Tauri runtime is not available") {
+          setCommandStatus("web-preview");
+          return;
+        }
 
-      setCommandStatus("error");
-    });
+        setCommandStatus("error");
+      });
 
     return () => {
       active = false;

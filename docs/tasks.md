@@ -209,7 +209,7 @@ Ghi chu trang thai:
 - Da dang ky invoke_handler trong main.rs voi command contracts ro rang.
 - Da them frontend wrapper src/lib/tauriCommands.ts va unit tests cho mapping payload command.
 
-[ ] TSK-2006 (P1) Migrate persistence tu localStorage sang PostgreSQL
+[x] TSK-2006 (P1) Migrate persistence tu localStorage sang PostgreSQL
 Phu thuoc: TSK-2005
 Dau ra: runtime khong phu thuoc localStorage cho core data
 Checklist:
@@ -219,6 +219,10 @@ Checklist:
 Nghiem thu:
 - Restart app van giu du lieu
 - Tao/sua/xoa du lieu qua command va DB
+Ghi chu trang thai:
+- Da them one-time migration module src/lib/legacyMigration.ts de import du lieu localStorage prototype vao DB qua Tauri commands.
+- Runtime CRUD frontend dung command wrapper src/lib/tauriCommands.ts (khong them localStorage fallback cho CRUD chinh).
+- Da them unit tests cho migration mapping va command payload contracts.
 
 ## M3 - Hoan thien nghiep vu MVP (4-6 ngay)
 

@@ -4,6 +4,51 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+export interface DeleteResult {
+  deleted: boolean;
+}
+
+export interface GoalRecord {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string | null;
+  goal_type: string;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+}
+
+export interface SubjectRecord {
+  id: string;
+  user_id: string;
+  name: string;
+  color?: string | null;
+}
+
+export interface SessionRecord {
+  id: string;
+  user_id: string;
+  goal_id?: string | null;
+  subject_id?: string | null;
+  title: string;
+  note: string;
+  start_time: string;
+  end_time: string;
+  duration_minutes: number;
+  work_mode: string;
+}
+
+export interface DailyStatsRecord {
+  date: string;
+  target_minutes: number;
+  studied_minutes: number;
+  remaining_minutes: number;
+  progress_ratio: number;
+  is_target_reached: boolean;
+  streak: number;
+}
+
 type InvokeArguments = Record<string, unknown> | undefined;
 type TauriInvoke = <T>(command: string, args?: InvokeArguments) => Promise<T>;
 
@@ -44,8 +89,18 @@ export interface GoalPayload {
   isActive: boolean;
 }
 
+export interface GoalUpdatePayload extends GoalPayload {
+  id: string;
+}
+
 export interface SubjectPayload {
   userId: string;
+  name: string;
+  color?: string;
+}
+
+export interface SubjectUpdatePayload {
+  id: string;
   name: string;
   color?: string;
 }
@@ -70,7 +125,7 @@ export interface DailyStatsPayload {
 }
 
 export const tauriCommands = {
-  createGoal: (payload: GoalPayload): Promise<ApiResponse<unknown>> =>
+  createGoal: (payload: GoalPayload): Promise<ApiResponse<GoalRecord>> =>
     callCommand("create_goal", {
       input: {
         user_id: payload.userId,
@@ -83,10 +138,26 @@ export const tauriCommands = {
       },
     }),
 
-  listGoals: (userId: string): Promise<ApiResponse<unknown[]>> =>
+  listGoals: (userId: string): Promise<ApiResponse<GoalRecord[]>> =>
     callCommand("list_goals", { userId }),
 
-  createSubject: (payload: SubjectPayload): Promise<ApiResponse<unknown>> =>
+  updateGoal: (payload: GoalUpdatePayload): Promise<ApiResponse<GoalRecord>> =>
+    callCommand("update_goal", {
+      input: {
+        id: payload.id,
+        title: payload.title,
+        description: payload.description ?? null,
+        goal_type: payload.goalType,
+        start_date: payload.startDate,
+        end_date: payload.endDate,
+        is_active: payload.isActive,
+      },
+    }),
+
+  deleteGoal: (id: string): Promise<ApiResponse<DeleteResult>> =>
+    callCommand("delete_goal", { id }),
+
+  createSubject: (payload: SubjectPayload): Promise<ApiResponse<SubjectRecord>> =>
     callCommand("create_subject", {
       input: {
         user_id: payload.userId,
@@ -95,10 +166,22 @@ export const tauriCommands = {
       },
     }),
 
-  listSubjects: (userId: string): Promise<ApiResponse<unknown[]>> =>
+  listSubjects: (userId: string): Promise<ApiResponse<SubjectRecord[]>> =>
     callCommand("list_subjects", { userId }),
 
-  saveStoppedTimer: (payload: StopTimerPayload): Promise<ApiResponse<unknown>> =>
+  updateSubject: (payload: SubjectUpdatePayload): Promise<ApiResponse<SubjectRecord>> =>
+    callCommand("update_subject", {
+      input: {
+        id: payload.id,
+        name: payload.name,
+        color: payload.color ?? null,
+      },
+    }),
+
+  deleteSubject: (id: string): Promise<ApiResponse<DeleteResult>> =>
+    callCommand("delete_subject", { id }),
+
+  saveStoppedTimer: (payload: StopTimerPayload): Promise<ApiResponse<SessionRecord>> =>
     callCommand("save_stopped_timer", {
       input: {
         user_id: payload.userId,
@@ -114,10 +197,13 @@ export const tauriCommands = {
       },
     }),
 
-  listSessions: (userId: string): Promise<ApiResponse<unknown[]>> =>
+  listSessions: (userId: string): Promise<ApiResponse<SessionRecord[]>> =>
     callCommand("list_sessions", { userId }),
 
-  getDailyStats: (payload: DailyStatsPayload): Promise<ApiResponse<unknown>> =>
+  deleteSession: (id: string): Promise<ApiResponse<DeleteResult>> =>
+    callCommand("delete_session", { id }),
+
+  getDailyStats: (payload: DailyStatsPayload): Promise<ApiResponse<DailyStatsRecord>> =>
     callCommand("get_daily_stats", {
       input: {
         user_id: payload.userId,
