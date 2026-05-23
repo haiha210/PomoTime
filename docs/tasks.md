@@ -153,7 +153,7 @@ Ghi chu trang thai:
 - Da tao migration: src-tauri/migrations/0001_init_postgres.sql
 - Da apply migration tren Docker Postgres local va xac nhan 4 bang duoc tao.
 
-[ ] TSK-2002 (P0) Tao migration runner PostgreSQL
+[x] TSK-2002 (P0) Tao migration runner PostgreSQL
 Phu thuoc: TSK-2001
 Dau ra: co co che migrate DB local
 Checklist:
@@ -162,6 +162,10 @@ Checklist:
 Nghiem thu:
 - App start lan dau tu tao schema
 - App start lan sau khong bi migrate lap
+Ghi chu trang thai:
+- Da them migration runner trong Rust: src-tauri/src/database.rs
+- App startup goi initialize_database() truoc khi tao Tauri runtime.
+- Da verify 2 lan chay lien tiep voi POMOTIME_RUN_MIGRATIONS_ONLY=1, migration chi duoc ghi 1 ban ghi trong schema_migrations.
 
 [ ] TSK-2003 (P1) Implement repository layer (Rust)
 Phu thuoc: TSK-2002
