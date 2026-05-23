@@ -1,6 +1,6 @@
-import { FormEvent, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 
-import { loginWithEmailPassword, loginWithGoogle } from "./authService";
+import { loginWithEmailPassword, loginWithGoogle, registerWithEmailPassword } from "./authService";
 import type { AuthSession } from "./authTypes";
 
 interface AuthViewProps {
@@ -10,16 +10,36 @@ interface AuthViewProps {
 
 export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.JSX.Element {
   const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("demo@pomotime.local");
-  const [password, setPassword] = useState("demo-password");
-  const [status, setStatus] = useState("Use demo credentials or connect Supabase keys.");
+  const [email, setEmail] = useState(hasSupabaseConfig ? "" : "demo@pomotime.local");
+  const [password, setPassword] = useState(hasSupabaseConfig ? "" : "demo-password");
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [status, setStatus] = useState(
+    hasSupabaseConfig
+      ? "Sign in with your Supabase account or create a new one."
+      : "Use demo credentials or connect Supabase keys."
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const title = mode === "login" ? "Login" : "Create account";
+  const submitLabel = mode === "login" ? "Login" : "Create account";
+  const secondaryLabel = mode === "login" ? "Need an account? Create one" : "Already have an account? Login";
+  const helperText = useMemo(() => {
+    if (!hasSupabaseConfig) {
+      return "Demo mode is active because Supabase runtime config is missing.";
+    }
+
+    return mode === "login"
+      ? "Sign in with email/password or continue with Google."
+      : "Create your account with email/password or continue with Google.";
+  }, [hasSupabaseConfig, mode]);
 
   async function handleEmailLogin(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     setIsSubmitting(true);
 
-    const result = await loginWithEmailPassword(email, password, displayName);
+    const result =
+      mode === "login"
+        ? await loginWithEmailPassword(email, password)
+        : await registerWithEmailPassword(email, password, displayName);
     setIsSubmitting(false);
 
     if (result.session) {
@@ -27,7 +47,7 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
       return;
     }
 
-    setStatus(result.error || "Unable to login");
+    setStatus(result.error || result.message || "Unable to continue");
   }
 
   async function handleGoogleLogin(): Promise<void> {
@@ -40,30 +60,32 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
       return;
     }
 
-    setStatus(result.error || "Google login failed");
+    setStatus(result.error || result.message || "Google login failed");
   }
 
   return (
     <section className="auth-screen">
       <div className="auth-card login-view-shell">
         <div className="login-card">
-          <h2>Login</h2>
-          <p className="muted">Sign in to start tracking your study time.</p>
+          <h2>{title}</h2>
+          <p className="muted">{helperText}</p>
           <p className="status-line" data-testid="supabase-mode">
             Supabase mode: {hasSupabaseConfig ? "configured" : "demo"}
           </p>
 
           <form className="login-form-stack" onSubmit={handleEmailLogin}>
-            <label className="field">
-              Display name (optional)
-              <input
-                value={displayName}
-                onChange={(event) => setDisplayName(event.target.value)}
-                placeholder="Example: Hai Ha"
-                type="text"
-                autoComplete="name"
-              />
-            </label>
+            {mode === "signup" ? (
+              <label className="field">
+                Display name (optional)
+                <input
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  placeholder="Example: Hai Ha"
+                  type="text"
+                  autoComplete="name"
+                />
+              </label>
+            ) : null}
 
             <label className="field">
               Email
@@ -89,7 +111,22 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
 
             <div className="btn-row">
               <button type="submit" className="btn primary" disabled={isSubmitting}>
-                Login
+                {submitLabel}
+              </button>
+              <button
+                type="button"
+                className="btn secondary"
+                disabled={isSubmitting}
+                onClick={() => {
+                  setMode((current) => (current === "login" ? "signup" : "login"));
+                  setStatus(
+                    hasSupabaseConfig
+                      ? "Use Supabase authentication to continue."
+                      : "Use demo credentials or connect Supabase keys."
+                  );
+                }}
+              >
+                {secondaryLabel}
               </button>
             </div>
           </form>
@@ -126,7 +163,7 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
         </div>
 
         <div className="login-side">
-          <h3>PomoTime</h3>
+          <h3>Welcome</h3>
           <p className="muted">
             Keep your learning streak strong with quick sessions, weekly progress, and goal tracking in one place.
           </p>

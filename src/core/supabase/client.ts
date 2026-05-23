@@ -14,12 +14,12 @@ export function getSupabaseClient(): SupabaseClient | null {
     return null;
   }
 
-  const nextFingerprint = `${runtimeConfig.url}::${runtimeConfig.anonKey}`;
+  const nextFingerprint = `${runtimeConfig.url}::${runtimeConfig.apiKey}`;
   if (cachedClient && nextFingerprint === cachedFingerprint) {
     return cachedClient;
   }
 
-  cachedClient = createClient(runtimeConfig.url, runtimeConfig.anonKey);
+  cachedClient = createClient(runtimeConfig.url, runtimeConfig.apiKey);
   cachedFingerprint = nextFingerprint;
 
   return cachedClient;

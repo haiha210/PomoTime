@@ -7,6 +7,7 @@ interface GoalsViewProps {
 }
 
 type GoalType = "daily" | "weekly" | "custom";
+type FlashTone = "success" | "error";
 
 const weekdayRows = [
   { value: 1, label: "Monday" },
@@ -31,6 +32,7 @@ function plusDaysIsoDate(days: number): string {
 export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
   const [goals, setGoals] = useState<GoalRecord[]>([]);
   const [subjects, setSubjects] = useState<SubjectRecord[]>([]);
+  const [isCreateGoalOpen, setIsCreateGoalOpen] = useState(false);
 
   const [goalTitle, setGoalTitle] = useState("");
   const [goalType, setGoalType] = useState<GoalType>("weekly");
@@ -46,9 +48,27 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
   const [targetsByWeekday, setTargetsByWeekday] = useState<Record<number, number>>({});
   const [enabledByWeekday, setEnabledByWeekday] = useState<Record<number, boolean>>({});
 
-  const [goalStatus, setGoalStatus] = useState("Create and manage your goals by week and subject.");
-  const [subjectStatus, setSubjectStatus] = useState("");
-  const [weeklyStatus, setWeeklyStatus] = useState("");
+  const [flashMessage, setFlashMessage] = useState("");
+  const [flashTone, setFlashTone] = useState<FlashTone>("success");
+
+  function showFlash(message: string, tone: FlashTone): void {
+    setFlashMessage(message);
+    setFlashTone(tone);
+  }
+
+  useEffect(() => {
+    if (!flashMessage) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setFlashMessage("");
+    }, 2800);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [flashMessage]);
 
   async function loadData(): Promise<void> {
     const [goalsResponse, subjectsResponse] = await Promise.all([
@@ -57,21 +77,20 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
     ]);
 
     if (goalsResponse.success && goalsResponse.data) {
-      setGoals(goalsResponse.data);
-      if (!selectedGoalId) {
-        const activeGoal = goalsResponse.data.find((goal) => goal.is_active) || goalsResponse.data[0];
-        setSelectedGoalId(activeGoal?.id || "");
-      }
+      const goalsData = goalsResponse.data;
+      setGoals(goalsData);
+      setSelectedGoalId((current) => (current && goalsData.some((goal) => goal.id === current) ? current : ""));
     } else {
       setGoals([]);
-      setGoalStatus(goalsResponse.error || "Unable to load goals.");
+      showFlash(goalsResponse.error || "Unable to load goals.", "error");
+      setSelectedGoalId("");
     }
 
     if (subjectsResponse.success && subjectsResponse.data) {
       setSubjects(subjectsResponse.data);
     } else {
       setSubjects([]);
-      setSubjectStatus(subjectsResponse.error || "Unable to load subjects.");
+      showFlash(subjectsResponse.error || "Unable to load subjects.", "error");
     }
   }
 
@@ -116,7 +135,7 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
     const trimmedTitle = goalTitle.trim();
 
     if (!trimmedTitle) {
-      setGoalStatus("Please enter a goal title.");
+      showFlash("Please enter a goal title.", "error");
       return;
     }
 
@@ -130,7 +149,7 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
     });
 
     if (!response.success || !response.data) {
-      setGoalStatus(response.error || "Unable to create goal.");
+      showFlash(response.error || "Unable to create goal.", "error");
       return;
     }
 
@@ -138,10 +157,11 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
     setGoalType("weekly");
     setGoalStartDate(todayIsoDate());
     setGoalEndDate(plusDaysIsoDate(30));
-    setGoalStatus("Goal created successfully.");
+    showFlash("Goal created successfully.", "success");
+    setIsCreateGoalOpen(false);
 
     await loadData();
-    setSelectedGoalId(response.data.id);
+    setSelectedGoalId("");
   }
 
   async function handleCreateSubject(event: React.FormEvent<HTMLFormElement>): Promise<void> {
@@ -149,7 +169,7 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
     const trimmedName = subjectName.trim();
 
     if (!trimmedName) {
-      setSubjectStatus("Please enter a subject name.");
+      showFlash("Please enter a subject name.", "error");
       return;
     }
 
@@ -158,30 +178,30 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
       name: trimmedName,
     });
     if (!response.success) {
-      setSubjectStatus(response.error || "Unable to create subject.");
+      showFlash(response.error || "Unable to create subject.", "error");
       return;
     }
 
     setSubjectName("");
-    setSubjectStatus("Subject created successfully.");
+    showFlash("Subject created successfully.", "success");
     await loadData();
   }
 
   async function handleSetActiveGoal(goalId: string): Promise<void> {
     const response = await tauriCommands.setActiveGoal(goalId);
     if (!response.success) {
-      setGoalStatus(response.error || "Unable to activate goal.");
+      showFlash(response.error || "Unable to activate goal.", "error");
       return;
     }
 
-    setGoalStatus("Active goal updated.");
+    showFlash("Active goal updated.", "success");
     await loadData();
     setSelectedGoalId(goalId);
   }
 
   async function handleSaveWeeklyTargets(): Promise<void> {
     if (!selectedGoalId) {
-      setWeeklyStatus("Select a goal first.");
+      showFlash("Select a goal first.", "error");
       return;
     }
 
@@ -195,231 +215,326 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
     const failed = responses.find((response) => !response.success);
 
     if (failed) {
-      setWeeklyStatus(failed.error || "Unable to save weekly targets.");
+      showFlash(failed.error || "Unable to save weekly targets.", "error");
       return;
     }
 
-    setWeeklyStatus("Weekly targets saved.");
+    showFlash("Weekly targets saved.", "success");
     await loadTargets(selectedGoalId);
+    setSelectedGoalId("");
   }
 
   return (
-    <section className="panel">
-      <h2>Goals</h2>
-      <p className="muted">Set up goals, subjects and weekly targets to match your study plan.</p>
-
-      <div className="settings-grid">
-        <article className="panel">
-          <h3>Create goal</h3>
-          <form className="form-grid" onSubmit={(event) => void handleCreateGoal(event)}>
-            <label htmlFor="goal-title-input">Title</label>
-            <input
-              id="goal-title-input"
-              value={goalTitle}
-              onChange={(event) => setGoalTitle(event.target.value)}
-              placeholder="Prepare for final exam"
-              required
-            />
-
-            <label htmlFor="goal-type-select">Type</label>
-            <select
-              id="goal-type-select"
-              value={goalType}
-              onChange={(event) => setGoalType(event.target.value as GoalType)}
-            >
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="custom">Custom</option>
-            </select>
-
-            <label htmlFor="goal-start-date-input">Start date</label>
-            <input
-              id="goal-start-date-input"
-              type="date"
-              value={goalStartDate}
-              onChange={(event) => setGoalStartDate(event.target.value)}
-            />
-
-            <label htmlFor="goal-end-date-input">End date</label>
-            <input
-              id="goal-end-date-input"
-              type="date"
-              value={goalEndDate}
-              onChange={(event) => setGoalEndDate(event.target.value)}
-            />
-
-            <button className="btn" type="submit">
-              Create goal
-            </button>
-          </form>
-        </article>
-
-        <article className="panel">
-          <h3>Subjects</h3>
-          <form className="form-grid" onSubmit={(event) => void handleCreateSubject(event)}>
-            <label htmlFor="subject-name-input">Subject name</label>
-            <input
-              id="subject-name-input"
-              value={subjectName}
-              onChange={(event) => setSubjectName(event.target.value)}
-              placeholder="Mathematics"
-              required
-            />
-
-            <button className="btn" type="submit">
-              Add subject
-            </button>
-          </form>
-
-          <div className="goal-subject-list">
-            {subjects.length === 0 ? (
-              <p className="muted">No subjects yet.</p>
-            ) : (
-              subjects.map((subject) => (
-                <div className="goal-subject-item" key={subject.id}>
-                  {subject.name}
-                </div>
-              ))
-            )}
-          </div>
-        </article>
-
-        <article className="panel">
-          <h3>Reminders</h3>
-          <div className="form-grid">
-            <label htmlFor="reminder-enabled-input">Enable reminder</label>
-            <input
-              id="reminder-enabled-input"
-              type="checkbox"
-              checked={reminderEnabled}
-              onChange={(event) => setReminderEnabled(event.target.checked)}
-            />
-
-            <label htmlFor="reminder-time-input">Reminder time</label>
-            <input
-              id="reminder-time-input"
-              type="time"
-              value={reminderTime}
-              onChange={(event) => setReminderTime(event.target.value)}
-            />
-
-            <p className="muted">Reminder settings are UI-only in this phase.</p>
-          </div>
-        </article>
+    <section className="panel goals-page">
+      <div className="goals-header">
+        <div>
+          <h2>Goals</h2>
+          <p className="muted">Set up goals, subjects and weekly targets to match your study plan.</p>
+        </div>
+        <button
+          className="btn primary create-goal-btn"
+          type="button"
+          onClick={() => setIsCreateGoalOpen((current) => !current)}
+        >
+          <span className="create-goal-plus" aria-hidden="true">
+            +
+          </span>
+          <span>{isCreateGoalOpen ? "Close create" : "Create goal"}</span>
+        </button>
       </div>
 
-      <div className="panel" style={{ marginTop: "12px" }}>
-        <h3>Goal list</h3>
-        <div className="goal-list">
-          {goals.length === 0 ? (
-            <p className="muted" data-testid="goals-empty">
-              No goals yet. Create your first goal above.
-            </p>
-          ) : (
-            goals.map((goal) => (
-              <article className={`goal-item ${goal.is_active ? "goal-item-active" : ""}`} key={goal.id}>
+      {flashMessage ? (
+        <div
+          className={`flash-toast ${flashTone === "error" ? "error" : "success"}`}
+          data-testid="goals-flash-message"
+          role="status"
+          aria-live="polite"
+        >
+          <span className="flash-toast-icon" aria-hidden="true">
+            {flashTone === "error" ? "!" : "✓"}
+          </span>
+          <span className="flash-toast-text">{flashMessage}</span>
+          <button className="flash-toast-close" type="button" aria-label="Dismiss notification" onClick={() => setFlashMessage("")}>
+            ×
+          </button>
+        </div>
+      ) : null}
+
+      <div className="goal-list">
+        {goals.length === 0 ? (
+          <p className="muted" data-testid="goals-empty">
+            No goals yet. Click Create goal to add your first one.
+          </p>
+        ) : (
+          <div className="goal-table">
+            <div className="goal-table-head" aria-hidden="true">
+              <span>Goal</span>
+              <span>Timeline</span>
+              <span>Status</span>
+              <span>Actions</span>
+            </div>
+            {goals.map((goal) => (
+              <article
+                className={`goal-row ${goal.is_active ? "goal-row-active" : ""} ${selectedGoalId === goal.id ? "goal-row-selected" : ""}`}
+                key={goal.id}
+              >
                 <div>
                   <p className="goal-title">{goal.title}</p>
-                  <p className="goal-meta">
-                    {goal.goal_type} · {goal.start_date} to {goal.end_date} · {goal.is_active ? "Active" : "Inactive"}
-                  </p>
+                  <p className="goal-meta">{goal.goal_type}</p>
                 </div>
-                <div className="btn-row">
-                  <button className="btn secondary" type="button" onClick={() => setSelectedGoalId(goal.id)}>
-                    Detail
-                  </button>
+
+                <p className="goal-date">{goal.start_date} to {goal.end_date}</p>
+
+                <span className={goal.is_active ? "goal-status-pill active" : "goal-status-pill inactive"}>
+                  {goal.is_active ? "Active" : "Inactive"}
+                </span>
+
+                <div className="goal-actions">
                   {!goal.is_active ? (
                     <button className="btn ghost" type="button" onClick={() => void handleSetActiveGoal(goal.id)}>
                       Set active
                     </button>
                   ) : null}
+                  <button className="btn secondary goal-edit-btn" type="button" onClick={() => setSelectedGoalId(goal.id)}>
+                    <svg className="goal-action-icon-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M4 20h4l10-10-4-4L4 16v4z" />
+                      <path d="M13 6l4 4" />
+                    </svg>
+                    <span>Edit</span>
+                  </button>
                 </div>
               </article>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {selectedGoal ? (
-        <div className="panel goal-detail-panel" data-testid="goal-detail-panel" style={{ marginTop: "12px" }}>
-          <div className="btn-row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-            <h3 style={{ margin: 0 }}>{selectedGoal.title}</h3>
-            <button className="btn ghost" type="button" onClick={() => setSelectedGoalId("")}>
-              Back to list
-            </button>
-          </div>
-
-          <p className="muted" style={{ marginTop: "8px" }}>
-            Configure daily target minutes by weekday for this goal.
-          </p>
-
-          <div className="weekly-grid" id="weekly-target-grid">
-            {weekdayRows.map(({ value, label }) => {
-              const enabled = Boolean(enabledByWeekday[value]);
-              const minutes = targetsByWeekday[value] || 0;
-
-              return (
-                <div className="weekday" key={value}>
-                  <span>{label}</span>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={enabled}
-                      onChange={(event) => {
-                        const checked = event.target.checked;
-                        setEnabledByWeekday((previous) => ({
-                          ...previous,
-                          [value]: checked,
-                        }));
-
-                        if (checked && !targetsByWeekday[value]) {
-                          setTargetsByWeekday((previous) => ({
-                            ...previous,
-                            [value]: 60,
-                          }));
-                        }
-                      }}
-                    />
-                    {enabled ? "Active" : "Rest"}
-                  </label>
+      {isCreateGoalOpen ? (
+        <div className="modal-overlay" role="presentation" onClick={() => setIsCreateGoalOpen(false)}>
+          <article className="modal-card create-goal-modal-card" onClick={(event) => event.stopPropagation()}>
+            <h3>Create goal</h3>
+            <form className="form-grid" onSubmit={(event) => void handleCreateGoal(event)}>
+              <div className="create-goal-modal-grid">
+                <label htmlFor="goal-title-input">
+                  Title
                   <input
-                    type="number"
-                    min={0}
-                    step={5}
-                    value={minutes}
-                    disabled={!enabled}
-                    onChange={(event) => {
-                      const nextValue = Number(event.target.value);
-                      setTargetsByWeekday((previous) => ({
-                        ...previous,
-                        [value]: Number.isFinite(nextValue) ? nextValue : 0,
-                      }));
-                    }}
+                    id="goal-title-input"
+                    value={goalTitle}
+                    onChange={(event) => setGoalTitle(event.target.value)}
+                    placeholder="Prepare for final exam"
+                    required
                   />
-                </div>
-              );
-            })}
-          </div>
+                </label>
 
-          <div className="btn-row" style={{ marginTop: "12px" }}>
-            {!selectedGoal.is_active ? (
-              <button className="btn secondary" type="button" onClick={() => void handleSetActiveGoal(selectedGoal.id)}>
-                Set as active goal
-              </button>
-            ) : null}
-            <button className="btn" type="button" onClick={() => void handleSaveWeeklyTargets()}>
-              Save weekly targets
-            </button>
-          </div>
+                <label htmlFor="goal-type-select">
+                  Type
+                  <select
+                    id="goal-type-select"
+                    value={goalType}
+                    onChange={(event) => setGoalType(event.target.value as GoalType)}
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </label>
 
-          <p className="status-line">{weeklyStatus || "Edit target values then save."}</p>
+                <label htmlFor="goal-start-date-input">
+                  Start date
+                  <input
+                    id="goal-start-date-input"
+                    type="date"
+                    value={goalStartDate}
+                    onChange={(event) => setGoalStartDate(event.target.value)}
+                  />
+                </label>
+
+                <label htmlFor="goal-end-date-input">
+                  End date
+                  <input
+                    id="goal-end-date-input"
+                    type="date"
+                    value={goalEndDate}
+                    onChange={(event) => setGoalEndDate(event.target.value)}
+                  />
+                </label>
+              </div>
+
+              <div className="btn-row" style={{ marginTop: "4px" }}>
+                <button className="btn primary" type="submit">
+                  Create goal
+                </button>
+                <button className="btn secondary" type="button" onClick={() => setIsCreateGoalOpen(false)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </article>
         </div>
       ) : null}
 
-      <p className="status-line" data-testid="goals-status">
-        {goalStatus || subjectStatus || weeklyStatus}
-      </p>
-      {subjectStatus ? <p className="status-line">{subjectStatus}</p> : null}
+      {selectedGoal ? (
+        <div className="modal-overlay goals-detail-overlay" role="presentation" onClick={() => setSelectedGoalId("")}>
+          <div
+            className="modal-card goals-detail-modal"
+            data-testid="goal-detail-panel"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="goal-detail-head">
+              <div>
+                <h3 style={{ margin: 0 }}>{selectedGoal.title}</h3>
+                <p className="muted">
+                  {selectedGoal.goal_type} · {selectedGoal.start_date} to {selectedGoal.end_date}
+                </p>
+              </div>
+              <button className="btn ghost" type="button" onClick={() => setSelectedGoalId("")}>
+                Close
+              </button>
+            </div>
+
+            <div className="goal-detail-toolbar">
+              {!selectedGoal.is_active ? (
+                <button className="btn secondary" type="button" onClick={() => void handleSetActiveGoal(selectedGoal.id)}>
+                  Set as active goal
+                </button>
+              ) : (
+                <span className="goals-chip">Active goal</span>
+              )}
+              <button className="btn primary" type="button" onClick={() => void handleSaveWeeklyTargets()}>
+                Save weekly targets
+              </button>
+            </div>
+
+            <div className="goal-detail-grid">
+              <article className="goal-detail-card">
+                <h3>Subjects</h3>
+                <form className="form-grid" onSubmit={(event) => void handleCreateSubject(event)}>
+                  <label htmlFor="subject-name-input">
+                    Subject name
+                    <input
+                      id="subject-name-input"
+                      value={subjectName}
+                      onChange={(event) => setSubjectName(event.target.value)}
+                      placeholder="Mathematics"
+                      required
+                    />
+                  </label>
+
+                  <button className="btn secondary subject-add-btn" type="submit">
+                    Add subject
+                  </button>
+                </form>
+
+                <div className="goal-subject-list">
+                  {subjects.length === 0 ? (
+                    <p className="muted">No subjects yet.</p>
+                  ) : (
+                    subjects.map((subject) => (
+                      <div className="goal-subject-item" key={subject.id}>
+                        {subject.name}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </article>
+
+              <article className="goal-detail-card">
+                <h3>Reminders</h3>
+                <div className="form-grid">
+                  <div className="toggle-row">
+                    <label htmlFor="reminder-enabled-input">Enable reminder</label>
+                    <input
+                      id="reminder-enabled-input"
+                      type="checkbox"
+                      checked={reminderEnabled}
+                      onChange={(event) => setReminderEnabled(event.target.checked)}
+                    />
+                  </div>
+
+                  <label htmlFor="reminder-time-input">
+                    Reminder time
+                    <input
+                      id="reminder-time-input"
+                      type="time"
+                      value={reminderTime}
+                      onChange={(event) => setReminderTime(event.target.value)}
+                    />
+                  </label>
+
+                  <p className="muted">Reminder settings are UI-only in this phase.</p>
+                </div>
+              </article>
+            </div>
+
+            <div className="goal-weekly-section">
+              <p className="muted">Configure daily target minutes by weekday for this goal.</p>
+
+              <div className="weekly-target-table" id="weekly-target-grid">
+                <div className="weekly-target-table-head" aria-hidden="true">
+                  <span className="weekly-target-head-day">Day</span>
+                  <span className="weekly-target-head-status">Status</span>
+                  <span className="weekly-target-head-minutes">Target</span>
+                </div>
+
+                {weekdayRows.map(({ value, label }) => {
+                  const enabled = Boolean(enabledByWeekday[value]);
+                  const minutes = targetsByWeekday[value] || 0;
+
+                  return (
+                    <div className="weekly-target-table-row" key={value}>
+                      <span className="weekly-target-day">{label}</span>
+
+                      <div className={`weekly-target-state ${enabled ? "active" : "rest"}`}>
+                        <input
+                          className="weekly-target-checkbox"
+                          type="checkbox"
+                          checked={enabled}
+                          onChange={(event) => {
+                            const checked = event.target.checked;
+                            setEnabledByWeekday((previous) => ({
+                              ...previous,
+                              [value]: checked,
+                            }));
+
+                            if (checked && !targetsByWeekday[value]) {
+                              setTargetsByWeekday((previous) => ({
+                                ...previous,
+                                [value]: 60,
+                              }));
+                            }
+                          }}
+                        />
+                        <span>{enabled ? "Active" : "Rest"}</span>
+                      </div>
+
+                      <div className="weekly-target-minutes-wrap">
+                        <input
+                          className="weekly-target-minutes"
+                          type="number"
+                          min={0}
+                          step={5}
+                          value={minutes}
+                          disabled={!enabled}
+                          onChange={(event) => {
+                            const nextValue = Number(event.target.value);
+                            setTargetsByWeekday((previous) => ({
+                              ...previous,
+                              [value]: Number.isFinite(nextValue) ? nextValue : 0,
+                            }));
+                          }}
+                        />
+                        <span>min</span>
+                        </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <p className="muted">Edit target values then save.</p>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

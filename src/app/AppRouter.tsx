@@ -6,7 +6,6 @@ import { DashboardView } from "../features/dashboard/DashboardView";
 import { GoalsView } from "../features/goals/GoalsView";
 import { HistoryView } from "../features/history/HistoryView";
 import { OnboardingView } from "../features/onboarding/OnboardingView";
-import { StatsView } from "../features/stats/StatsView";
 import { TimerView } from "../features/timer/TimerView";
 
 import { MainLayout } from "./MainLayout";
@@ -47,7 +46,7 @@ export function AppRouter({
             <Route path="/dashboard" element={<DashboardView userId={session.userId} />} />
             <Route path="/timer" element={<TimerView userId={session.userId} />} />
             <Route path="/history" element={<HistoryView userId={session.userId} />} />
-            <Route path="/stats" element={<StatsView userId={session.userId} />} />
+            <Route path="/stats" element={<Navigate to="/dashboard" replace />} />
             <Route path="/goals" element={<GoalsView userId={session.userId} />} />
           </Route>
         ) : (

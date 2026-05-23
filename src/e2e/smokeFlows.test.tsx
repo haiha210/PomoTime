@@ -125,6 +125,7 @@ describe("critical smoke flows", () => {
 
   it("supports login and logout", async () => {
     render(<App />);
+    await screen.findByRole("button", { name: "Login" });
 
     fireEvent.click(screen.getByRole("button", { name: "Login" }));
     expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
@@ -135,6 +136,7 @@ describe("critical smoke flows", () => {
 
   it("creates first goal from onboarding", async () => {
     render(<App />);
+    await screen.findByRole("button", { name: "Login" });
 
     fireEvent.click(screen.getByRole("button", { name: "Login" }));
     await screen.findByRole("heading", { name: "Dashboard" });
@@ -155,6 +157,7 @@ describe("critical smoke flows", () => {
     vi.spyOn(Date, "now").mockImplementation(() => nowMs);
 
     render(<App />);
+    await screen.findByRole("button", { name: "Login" });
 
     fireEvent.click(screen.getByRole("button", { name: "Login" }));
     await screen.findByRole("heading", { name: "Dashboard" });

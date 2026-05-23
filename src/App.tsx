@@ -2,36 +2,58 @@ import { useEffect, useState } from "react";
 
 import { AppRouter } from "./app/AppRouter";
 import { isSupabaseConfigured } from "./core/config/supabaseConfig";
-import { logoutCurrentSession, restoreSession } from "./features/auth/authService";
+import { logoutCurrentSession, restoreSession, subscribeToAuthChanges } from "./features/auth/authService";
 import type { AuthSession } from "./features/auth/authTypes";
 import { migrateLegacyLocalStorageData } from "./lib/legacyMigration";
-import { tauriCommands } from "./lib/tauriCommands";
+import { isTauriRuntimeAvailable, tauriCommands } from "./lib/tauriCommands";
 
 function App(): React.JSX.Element {
   const hasSupabaseConfig = isSupabaseConfigured();
   const [session, setSession] = useState<AuthSession | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const [commandStatus, setCommandStatus] = useState("checking");
 
   useEffect(() => {
     let active = true;
+    const unsubscribe = subscribeToAuthChanges((nextSession) => {
+      if (!active) {
+        return;
+      }
+
+      setSession(nextSession);
+      setIsAuthReady(true);
+    });
 
     restoreSession()
       .then((restoredSession) => {
-        if (!active || !restoredSession) {
+        if (!active) {
           return;
         }
 
         setSession(restoredSession);
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => {
+        if (active) {
+          setIsAuthReady(true);
+        }
+      });
 
     return () => {
       active = false;
+      unsubscribe();
     };
   }, []);
 
   useEffect(() => {
     let active = true;
+
+    if (!isTauriRuntimeAvailable()) {
+      setCommandStatus("web-preview");
+      return () => {
+        active = false;
+      };
+    }
 
     migrateLegacyLocalStorageData("demo-user")
       .catch(() => undefined)
@@ -43,11 +65,6 @@ function App(): React.JSX.Element {
 
         if (response.success) {
           setCommandStatus("connected");
-          return;
-        }
-
-        if (response.error === "Tauri runtime is not available") {
-          setCommandStatus("web-preview");
           return;
         }
 
@@ -63,6 +80,17 @@ function App(): React.JSX.Element {
     logoutCurrentSession()
       .catch(() => undefined)
       .finally(() => setSession(null));
+  }
+
+  if (!isAuthReady) {
+    return (
+      <section className="auth-screen">
+        <div className="auth-card">
+          <h2>Loading session...</h2>
+          <p className="muted">Checking your Supabase authentication state.</p>
+        </div>
+      </section>
+    );
   }
 
   return (

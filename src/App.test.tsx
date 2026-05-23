@@ -12,12 +12,14 @@ describe("App", () => {
   it("shows login screen when user is not authenticated", async () => {
     render(<App />);
 
-    expect(await screen.findByRole("heading", { name: "PomoTime" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Login" })).toBeInTheDocument();
     expect(screen.getByTestId("supabase-mode")).toHaveTextContent("Supabase mode: demo");
+    expect(screen.queryByLabelText("Display name (optional)")).not.toBeInTheDocument();
   });
 
   it("logs in demo user and opens dashboard", async () => {
     render(<App />);
+    await screen.findByRole("heading", { name: "Login" });
 
     fireEvent.change(screen.getByLabelText("Email"), {
       target: { value: "demo@pomotime.local" },
@@ -33,6 +35,7 @@ describe("App", () => {
 
   it("shows validation error when login fields are empty", async () => {
     render(<App />);
+    await screen.findByRole("heading", { name: "Login" });
 
     fireEvent.change(screen.getByLabelText("Email"), {
       target: { value: "" },
@@ -65,6 +68,7 @@ describe("App", () => {
 
   it("navigates across all main views without crashing", async () => {
     render(<App />);
+    await screen.findByRole("heading", { name: "Login" });
 
     fireEvent.click(screen.getByRole("button", { name: "Login" }));
     await screen.findByRole("heading", { name: "Dashboard" });
@@ -77,9 +81,6 @@ describe("App", () => {
 
     fireEvent.click(screen.getByRole("link", { name: "History" }));
     expect(await screen.findByRole("heading", { name: "History" })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("link", { name: "Statistics" }));
-    expect(await screen.findByRole("heading", { name: "Statistics" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("link", { name: "Goal Settings" }));
     expect(await screen.findByRole("heading", { name: "Goals" })).toBeInTheDocument();

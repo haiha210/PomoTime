@@ -1,6 +1,7 @@
 export interface SupabaseRuntimeConfig {
   url: string;
-  anonKey: string;
+  apiKey: string;
+  keyType: "publishable" | "anon";
   source: "pomotime" | "learntime";
 }
 
@@ -8,25 +9,44 @@ function clean(value?: string): string {
   return (value || "").trim();
 }
 
-export function getSupabaseRuntimeConfig(): SupabaseRuntimeConfig | null {
-  const pomotimeUrl = clean(window.POMOTIME_SUPABASE_URL);
-  const pomotimeAnonKey = clean(window.POMOTIME_SUPABASE_ANON_KEY);
+function readEnv(name: string): string {
+  const value = import.meta.env[name as keyof ImportMetaEnv];
+  return typeof value === "string" ? clean(value) : "";
+}
 
-  if (pomotimeUrl && pomotimeAnonKey) {
+function readRuntimeConfigValue(envName: string, windowValue?: string): string {
+  return readEnv(envName) || clean(windowValue);
+}
+
+export function getSupabaseRuntimeConfig(): SupabaseRuntimeConfig | null {
+  const pomotimeUrl = readRuntimeConfigValue("VITE_POMOTIME_SUPABASE_URL", window.POMOTIME_SUPABASE_URL);
+  const pomotimePublishableKey = readRuntimeConfigValue(
+    "VITE_POMOTIME_SUPABASE_PUBLISHABLE_KEY",
+    window.POMOTIME_SUPABASE_PUBLISHABLE_KEY
+  );
+  const pomotimeAnonKey = readRuntimeConfigValue("VITE_POMOTIME_SUPABASE_ANON_KEY", window.POMOTIME_SUPABASE_ANON_KEY);
+
+  if (pomotimeUrl && (pomotimePublishableKey || pomotimeAnonKey)) {
     return {
       url: pomotimeUrl,
-      anonKey: pomotimeAnonKey,
+      apiKey: pomotimePublishableKey || pomotimeAnonKey,
+      keyType: pomotimePublishableKey ? "publishable" : "anon",
       source: "pomotime",
     };
   }
 
-  const learntimeUrl = clean(window.LEARNTIME_SUPABASE_URL);
-  const learntimeAnonKey = clean(window.LEARNTIME_SUPABASE_ANON_KEY);
+  const learntimeUrl = readRuntimeConfigValue("VITE_LEARNTIME_SUPABASE_URL", window.LEARNTIME_SUPABASE_URL);
+  const learntimePublishableKey = readRuntimeConfigValue(
+    "VITE_LEARNTIME_SUPABASE_PUBLISHABLE_KEY",
+    window.LEARNTIME_SUPABASE_PUBLISHABLE_KEY
+  );
+  const learntimeAnonKey = readRuntimeConfigValue("VITE_LEARNTIME_SUPABASE_ANON_KEY", window.LEARNTIME_SUPABASE_ANON_KEY);
 
-  if (learntimeUrl && learntimeAnonKey) {
+  if (learntimeUrl && (learntimePublishableKey || learntimeAnonKey)) {
     return {
       url: learntimeUrl,
-      anonKey: learntimeAnonKey,
+      apiKey: learntimePublishableKey || learntimeAnonKey,
+      keyType: learntimePublishableKey ? "publishable" : "anon",
       source: "learntime",
     };
   }

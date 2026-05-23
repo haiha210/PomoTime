@@ -61,12 +61,22 @@ npm run build
 
 ## Supabase Runtime Config
 
-Set your Supabase values in app-config.js:
+Prefer environment variables so you do not commit keys into git.
 
-- window.POMOTIME_SUPABASE_URL
-- window.POMOTIME_SUPABASE_ANON_KEY
+Add these variables to `.env.local` (or `.env` for local-only setups):
 
-If left empty, the app can run in demo/fallback mode.
+- VITE_POMOTIME_SUPABASE_URL
+- VITE_POMOTIME_SUPABASE_PUBLISHABLE_KEY
+- VITE_POMOTIME_SUPABASE_ANON_KEY
+
+Legacy fallback keys are still supported if needed:
+
+- VITE_LEARNTIME_SUPABASE_URL
+- VITE_LEARNTIME_SUPABASE_PUBLISHABLE_KEY
+- VITE_LEARNTIME_SUPABASE_ANON_KEY
+
+`app-config.js` remains as a runtime fallback for older builds, but it should stay with empty placeholders in the repository.
+Prefer the publishable key for new setups. The anon key remains supported for backward compatibility.
 
 ## Important Note About Frontend
 

@@ -15,7 +15,6 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: "◫" },
   { to: "/timer", label: "Session Timer", icon: "◷" },
   { to: "/history", label: "History", icon: "≣" },
-  { to: "/stats", label: "Statistics", icon: "◰" },
   { to: "/goals", label: "Goal Settings", icon: "◎" },
 ];
 
@@ -175,7 +174,13 @@ export function MainLayout({ commandStatus, session, onLogout }: MainLayoutProps
           <div className="btn-row">
             <span className="streak-chip">Current streak: {streak} days</span>
             <div className="topbar-user">
-              <div className="topbar-user-avatar">{initials}</div>
+              <div className="topbar-user-avatar">
+                {session.avatarUrl ? (
+                  <img src={session.avatarUrl} alt={session.displayName} />
+                ) : (
+                  initials
+                )}
+              </div>
               <div className="topbar-user-meta">
                 <span className="topbar-user-name">{session.displayName}</span>
                 <span className="topbar-user-email">{session.email}</span>

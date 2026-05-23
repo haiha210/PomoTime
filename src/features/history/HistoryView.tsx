@@ -58,10 +58,6 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
   const [manualNote, setManualNote] = useState("");
   const [manualMode, setManualMode] = useState("focus_clock");
 
-  const [editingId, setEditingId] = useState("");
-  const [editingTitle, setEditingTitle] = useState("");
-  const [editingDuration, setEditingDuration] = useState(0);
-
   const goalNameById = useMemo(() => {
     const map = new Map<string, string>();
     goals.forEach((goal) => {
@@ -146,17 +142,6 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
       });
   }, [fromDate, goalNameById, search, sessions, subjectFilter, subjectNameById, toDate]);
 
-  async function handleDelete(sessionId: string): Promise<void> {
-    const response = await tauriCommands.deleteSession(sessionId);
-    if (!response.success) {
-      setStatus(response.error || "Unable to delete session.");
-      return;
-    }
-
-    setStatus("Session deleted.");
-    await loadData();
-  }
-
   async function handleAddManualSession(): Promise<void> {
     const startIso = new Date(`${manualDate}T${manualTime}:00.000Z`).toISOString();
     const safeDuration = Math.max(1, manualDuration);
@@ -181,29 +166,6 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
 
     setStatus("Manual session added.");
     setIsManualPanelOpen(false);
-    await loadData();
-  }
-
-  async function handleUpdateSession(session: SessionRecord): Promise<void> {
-    const response = await tauriCommands.updateSession({
-      id: session.id,
-      goalId: session.goal_id || undefined,
-      subjectId: session.subject_id || undefined,
-      title: editingTitle.trim() || session.title,
-      note: session.note,
-      startTime: session.start_time,
-      endTime: endIsoFromStartAndDuration(session.start_time, Math.max(1, editingDuration)),
-      durationMinutes: Math.max(1, editingDuration),
-      workMode: session.work_mode,
-    });
-
-    if (!response.success) {
-      setStatus(response.error || "Unable to update session.");
-      return;
-    }
-
-    setEditingId("");
-    setStatus("Session updated.");
     await loadData();
   }
 
@@ -385,13 +347,12 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
             <th>Subject</th>
             <th>Title</th>
             <th>Duration</th>
-            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {filteredSessions.length === 0 ? (
             <tr>
-              <td colSpan={6} className="muted" style={{ textAlign: "center" }}>
+              <td colSpan={5} className="muted" style={{ textAlign: "center" }}>
                 No sessions match current filters.
               </td>
             </tr>
@@ -405,60 +366,8 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
                   <td>{formatIsoDate(session.start_time)}</td>
                   <td>{goalName}</td>
                   <td>{subjectName}</td>
-                  <td>
-                    {editingId === session.id ? (
-                      <input
-                        type="text"
-                        value={editingTitle}
-                        onChange={(event) => setEditingTitle(event.target.value)}
-                      />
-                    ) : (
-                      session.title
-                    )}
-                  </td>
-                  <td>
-                    {editingId === session.id ? (
-                      <input
-                        type="number"
-                        min={1}
-                        value={editingDuration}
-                        onChange={(event) => setEditingDuration(Number(event.target.value || 0))}
-                      />
-                    ) : (
-                      `${session.duration_minutes} min`
-                    )}
-                  </td>
-                  <td>
-                    <div className="btn-row">
-                      {editingId === session.id ? (
-                        <>
-                          <button className="btn primary" type="button" onClick={() => void handleUpdateSession(session)}>
-                            Save
-                          </button>
-                          <button className="btn secondary" type="button" onClick={() => setEditingId("")}>
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            className="btn secondary"
-                            type="button"
-                            onClick={() => {
-                              setEditingId(session.id);
-                              setEditingTitle(session.title);
-                              setEditingDuration(session.duration_minutes);
-                            }}
-                          >
-                            Edit
-                          </button>
-                          <button className="btn danger" type="button" onClick={() => void handleDelete(session.id)}>
-                            Delete
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
+                  <td>{session.title}</td>
+                  <td>{session.duration_minutes} min</td>
                 </tr>
               );
             })
