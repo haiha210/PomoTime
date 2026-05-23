@@ -3,6 +3,12 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import App from "./App";
 
 describe("App", () => {
+  beforeEach(() => {
+    window.location.hash = "";
+    sessionStorage.clear();
+    localStorage.clear();
+  });
+
   it("shows login screen when user is not authenticated", async () => {
     render(<App />);
 
@@ -23,6 +29,38 @@ describe("App", () => {
 
     expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
     expect(screen.getByTestId("command-status")).toHaveTextContent("Command:");
+  });
+
+  it("shows validation error when login fields are empty", async () => {
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Sign in with email" }));
+
+    expect(await screen.findByTestId("auth-status")).toHaveTextContent(
+      "Email and password are required"
+    );
+  });
+
+  it("restores previous demo session on startup", async () => {
+    sessionStorage.setItem(
+      "pomotime.auth.demo-session",
+      JSON.stringify({
+        userId: "demo-restored-user",
+        email: "restored@pomotime.local",
+        displayName: "Restored User",
+        provider: "demo",
+      })
+    );
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
   });
 
   it("navigates across all main views without crashing", async () => {

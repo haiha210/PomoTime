@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { AppRouter } from "./app/AppRouter";
 import { isSupabaseConfigured } from "./core/config/supabaseConfig";
-import { logoutCurrentSession } from "./features/auth/authService";
+import { logoutCurrentSession, restoreSession } from "./features/auth/authService";
 import type { AuthSession } from "./features/auth/authTypes";
 import { migrateLegacyLocalStorageData } from "./lib/legacyMigration";
 import { tauriCommands } from "./lib/tauriCommands";
@@ -11,6 +11,24 @@ function App(): React.JSX.Element {
   const hasSupabaseConfig = isSupabaseConfigured();
   const [session, setSession] = useState<AuthSession | null>(null);
   const [commandStatus, setCommandStatus] = useState("checking");
+
+  useEffect(() => {
+    let active = true;
+
+    restoreSession()
+      .then((restoredSession) => {
+        if (!active || !restoredSession) {
+          return;
+        }
+
+        setSession(restoredSession);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;

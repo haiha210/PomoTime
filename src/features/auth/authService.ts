@@ -1,6 +1,7 @@
 import { getSupabaseClient } from "../../core/supabase/client";
 
 import type { AuthSession } from "./authTypes";
+import { clearDemoSession, loadDemoSession, saveDemoSession } from "./sessionStore";
 
 export interface AuthResult {
   session?: AuthSession;
@@ -21,14 +22,15 @@ export async function loginWithEmailPassword(
 
   const supabaseClient = getSupabaseClient();
   if (!supabaseClient) {
-    return {
-      session: {
-        userId: `demo-${email.toLowerCase()}`,
-        email,
-        displayName: displayNameFromEmail(email),
-        provider: "demo",
-      },
+    const session = {
+      userId: `demo-${email.toLowerCase()}`,
+      email,
+      displayName: displayNameFromEmail(email),
+      provider: "demo" as const,
     };
+
+    saveDemoSession(session);
+    return { session };
   }
 
   const { data, error } = await supabaseClient.auth.signInWithPassword({
@@ -56,14 +58,15 @@ export async function loginWithEmailPassword(
 export async function loginWithGoogle(): Promise<AuthResult> {
   const supabaseClient = getSupabaseClient();
   if (!supabaseClient) {
-    return {
-      session: {
-        userId: "demo-google-user",
-        email: "google-demo@pomotime.local",
-        displayName: "Google Demo",
-        provider: "demo",
-      },
+    const session = {
+      userId: "demo-google-user",
+      email: "google-demo@pomotime.local",
+      displayName: "Google Demo",
+      provider: "demo" as const,
     };
+
+    saveDemoSession(session);
+    return { session };
   }
 
   const { error } = await supabaseClient.auth.signInWithOAuth({
@@ -80,7 +83,33 @@ export async function loginWithGoogle(): Promise<AuthResult> {
   };
 }
 
+export async function restoreSession(): Promise<AuthSession | null> {
+  const supabaseClient = getSupabaseClient();
+
+  if (!supabaseClient) {
+    return loadDemoSession();
+  }
+
+  const { data, error } = await supabaseClient.auth.getSession();
+  if (error || !data.session?.user) {
+    return null;
+  }
+
+  const user = data.session.user;
+  return {
+    userId: user.id,
+    email: user.email || "unknown@supabase.local",
+    displayName:
+      String(user.user_metadata?.full_name || "").trim() ||
+      displayNameFromEmail(user.email || "user@supabase.local"),
+    avatarUrl: user.user_metadata?.avatar_url || null,
+    provider: "supabase",
+  };
+}
+
 export async function logoutCurrentSession(): Promise<void> {
+  clearDemoSession();
+
   const supabaseClient = getSupabaseClient();
   if (!supabaseClient) {
     return;

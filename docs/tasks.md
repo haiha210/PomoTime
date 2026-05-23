@@ -241,7 +241,7 @@ Ghi chu trang thai:
 
 ## M3 - Hoan thien nghiep vu MVP (4-6 ngay)
 
-[ ] TSK-3001 (P1) Hoan thien auth flow theo spec
+[x] TSK-3001 (P1) Hoan thien auth flow theo spec
 Phu thuoc: TSK-2005
 Dau ra: login/logout/session restore on dinh
 Checklist:
@@ -252,6 +252,10 @@ Checklist:
 Nghiem thu:
 - Luong login fail/success hien thi dung
 - Logout quay ve man auth
+Ghi chu trang thai:
+- Da hoan thien login email/password + Google fallback demo trong src/features/auth/AuthView.tsx va authService.ts.
+- Da bo sung session restore luc startup (App.tsx + sessionStore.ts).
+- Da bo sung test cho login fail/success, restore session va logout routing trong src/App.test.tsx.
 
 [ ] TSK-3002 (P1) Hoan thien goals + onboarding
 Phu thuoc: TSK-2006
