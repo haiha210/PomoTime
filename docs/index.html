@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LearnTime - UI Prototype</title>
+    <title>PomoTime - UI Prototype</title>
     <link
       rel="preconnect"
       href="https://fonts.googleapis.com"
@@ -1152,7 +1152,7 @@
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand">
-          <b>LearnTime</b>
+          <b>PomoTime</b>
           <span>Minimal desktop prototype</span>
         </div>
 
@@ -1268,7 +1268,7 @@
               </div>
             </div>
             <div class="login-side">
-              <h3 style="margin: 0 0 8px">LearnTime</h3>
+              <h3 style="margin: 0 0 8px">PomoTime</h3>
               <p class="muted">
                 Keep your learning streak strong with quick sessions, weekly progress, and goal tracking in one place.
               </p>
@@ -1906,9 +1906,10 @@
       const subjectStatus = document.getElementById("subject-status");
       const subjectList = document.getElementById("subject-list");
 
-      const APP_STORAGE_PREFIX = "learntime.v2.user";
-      const SUPABASE_URL = String(window.LEARNTIME_SUPABASE_URL || "").trim();
-      const SUPABASE_ANON_KEY = String(window.LEARNTIME_SUPABASE_ANON_KEY || "").trim();
+      const APP_STORAGE_PREFIX = "pomotime.v2.user";
+      const LEGACY_APP_STORAGE_PREFIX = "learntime.v2.user";
+      const SUPABASE_URL = String(window.POMOTIME_SUPABASE_URL || window.LEARNTIME_SUPABASE_URL || "").trim();
+      const SUPABASE_ANON_KEY = String(window.POMOTIME_SUPABASE_ANON_KEY || window.LEARNTIME_SUPABASE_ANON_KEY || "").trim();
       const supabaseClient =
         typeof window.supabase !== "undefined" && SUPABASE_URL && SUPABASE_ANON_KEY
           ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -1975,6 +1976,10 @@
 
       function storageKeyForUser(userId) {
         return APP_STORAGE_PREFIX + "." + normalizedUserId(userId);
+      }
+
+      function legacyStorageKeyForUser(userId) {
+        return LEGACY_APP_STORAGE_PREFIX + "." + normalizedUserId(userId);
       }
 
       function safeParseJson(rawValue) {
@@ -2082,7 +2087,9 @@
       }
 
       function loadStoredUserData(userId) {
-        const stored = safeParseJson(localStorage.getItem(storageKeyForUser(userId)));
+        const stored =
+          safeParseJson(localStorage.getItem(storageKeyForUser(userId))) ||
+          safeParseJson(localStorage.getItem(legacyStorageKeyForUser(userId)));
         if (!stored) {
           return seedDataForUser(userId);
         }
@@ -3587,7 +3594,7 @@
           sessions: sortedSessionsDesc(studySessions),
         };
         const content = JSON.stringify(payload, null, 2);
-        downloadTextFile("learntime-sessions.json", content, "application/json");
+        downloadTextFile("pomotime-sessions.json", content, "application/json");
       }
 
       function exportSessionsCsv() {
@@ -3616,7 +3623,7 @@
           session.endTime,
         ]);
         const content = exportRowsToCsv([header, ...rows]);
-        downloadTextFile("learntime-sessions.csv", content, "text/csv;charset=utf-8");
+        downloadTextFile("pomotime-sessions.csv", content, "text/csv;charset=utf-8");
       }
 
       function addManualSession() {

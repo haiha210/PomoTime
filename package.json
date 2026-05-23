@@ -1,8 +1,8 @@
 {
-  "name": "learntime",
+  "name": "pomotime",
   "version": "0.1.0",
   "private": true,
-  "description": "LearnTime desktop app (Linux/Windows) using Tauri 2",
+  "description": "PomoTime desktop app (Linux/Windows) using Tauri 2",
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",

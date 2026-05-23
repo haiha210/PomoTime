@@ -1,8 +1,8 @@
 [package]
-name = "learntime"
+name = "pomotime"
 version = "0.1.0"
-description = "LearnTime desktop app"
-authors = ["LearnTime Team"]
+description = "PomoTime desktop app"
+authors = ["PomoTime Team"]
 edition = "2021"
 
 [build-dependencies]

@@ -1,18 +1,18 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "LearnTime",
+  "productName": "PomoTime",
   "version": "0.1.0",
-  "identifier": "com.learntime.app",
+  "identifier": "com.pomotime.app",
   "build": {
     "beforeDevCommand": "",
     "beforeBuildCommand": "",
-    "frontendDist": ".."
+    "frontendDist": "../dist"
   },
   "app": {
     "windows": [
       {
         "label": "main",
-        "title": "LearnTime",
+        "title": "PomoTime",
         "width": 1280,
         "height": 840,
         "minWidth": 1100,

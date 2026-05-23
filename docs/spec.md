@@ -4,7 +4,7 @@
 
 Ứng dụng là một công cụ đa nền tảng viết bằng Rust, hỗ trợ người dùng ghi nhận thời gian học mỗi ngày, theo dõi tiến độ học tập qua biểu đồ thống kê, và đặt mục tiêu học tập hằng ngày để duy trì thói quen.
 
-Tên tạm thời: **LearnTime**
+Tên tạm thời: **PomoTime**
 
 ## 2. Mục tiêu sản phẩm
 
@@ -525,7 +525,7 @@ Phiên bản đầu tiên nên bao gồm:
 ### 16.2. Cấu trúc thư mục đề xuất (Tauri 2)
 
 ```text
-learnTime/
+pomoTime/
   src/                        # Frontend (UI trong Tauri WebView)
     app/                      # bootstrap, router, providers
     features/                 # module theo tính năng (goals, sessions, stats)
@@ -626,7 +626,7 @@ learnTime/
 
 ### 17.1. Mục tiêu triển khai MVP
 
-- Đưa ứng dụng LearnTime MVP lên mức usable end-to-end trên Linux/Windows với Tauri 2.
+- Đưa ứng dụng PomoTime MVP lên mức usable end-to-end trên Linux/Windows với Tauri 2.
 - Đảm bảo luồng cốt lõi hoạt động đầy đủ: login -> onboarding goal -> quick study -> timer -> lưu history -> xem stats.
 - Bảo đảm local-first: chạy ổn offline với SQLite, đồng thời chuẩn bị sẵn boundary để đồng bộ cloud ở giai đoạn sau.
 
@@ -834,7 +834,7 @@ learnTime/
 ### 18.3. Nhóm C - Dữ liệu local-first và mô hình app state
 
 - [x] C1. Tổ chức app state theo user (`goals`, `subjects`, `sessions`, `weeklyTargets`).
-- [x] C2. Persist local theo namespace user (`learntime.v2.user.<id>`).
+- [x] C2. Persist local theo namespace user (`pomotime.v2.user.<id>`).
 - [x] C3. Seed data cho user mới đăng nhập để demo luồng đầy đủ.
 - [x] C4. Chuẩn hóa dữ liệu khi load từ localStorage.
 - [x] C5. Đồng bộ persist sau mọi thao tác CRUD chính.
