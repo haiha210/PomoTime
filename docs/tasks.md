@@ -51,7 +51,7 @@ Checklist:
 Nghiem thu:
 - Khong co loi dependency install
 
-[ ] TSK-0003 (P0) Smoke build desktop Linux
+[x] TSK-0003 (P0) Smoke build desktop Linux
 Phu thuoc: TSK-0002
 Dau ra: artifact build Linux tao duoc
 Checklist:
@@ -59,6 +59,10 @@ Checklist:
 - Kiem tra output bundle Linux
 Nghiem thu:
 - Build complete voi exit code 0
+Ghi chu trang thai:
+- Da build thanh cong voi target Linux deb.
+- Artifact xac nhan: src-tauri/target/release/bundle/deb/PomoTime_0.1.0_amd64.deb
+- Da bo sung icon bundle va dieu chinh target local sang deb de tranh blocker linuxdeploy/AppImage tren may hien tai.
 
 [x] TSK-0004 (P0) Chot huong frontend React + TypeScript
 Phu thuoc: TSK-0002
