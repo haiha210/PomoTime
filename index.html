@@ -1,0 +1,4311 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LearnTime - UI Prototype</title>
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f6f6f4;
+        --surface: #ffffff;
+        --surface-muted: #f1f1ee;
+        --text-primary: #111315;
+        --text-secondary: #5d646b;
+        --accent: #0f766e;
+        --accent-strong: #0b5d57;
+        --success: #2e7d32;
+        --warning: #b7791f;
+        --danger: #c62828;
+        --border: #e3e5e8;
+        --radius-lg: 16px;
+        --radius-md: 10px;
+        --radius-sm: 8px;
+        --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.05);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        font-family: "Manrope", sans-serif;
+        color: var(--text-primary);
+        background: radial-gradient(circle at 15% 15%, #ffffff, #f6f6f4 60%)
+          fixed;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(
+          to right,
+          rgba(17, 19, 21, 0.03) 1px,
+          transparent 1px
+        );
+        background-size: 40px 100%;
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), transparent 85%);
+      }
+
+      .app-shell {
+        display: grid;
+        grid-template-columns: 248px minmax(0, 1fr);
+        gap: 16px;
+        min-height: 100vh;
+        padding: 16px;
+      }
+
+      .app-shell.auth-screen {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 24px;
+      }
+
+      .app-shell.auth-screen .sidebar {
+        display: none;
+      }
+
+      .app-shell.auth-screen .main {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+      }
+
+      .app-shell.auth-screen .topbar,
+      .app-shell.auth-screen .auth-status {
+        display: none;
+      }
+
+      .app-shell.sidebar-hidden {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .app-shell.sidebar-hidden .sidebar {
+        display: none;
+      }
+
+      .sidebar {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(8px);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px 14px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--shadow-soft);
+      }
+
+      .brand {
+        display: grid;
+        gap: 4px;
+        margin-bottom: 20px;
+        padding: 10px 12px;
+        border-radius: var(--radius-md);
+        background: linear-gradient(130deg, #ffffff, #f4faf9);
+        border: 1px solid var(--border);
+      }
+
+      .brand b {
+        font-size: 1.05rem;
+      }
+
+      .brand span {
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+      }
+
+      .nav-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .nav-btn {
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--text-secondary);
+        text-align: left;
+        border-radius: var(--radius-sm);
+        padding: 12px;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .nav-icon {
+        width: 20px;
+        text-align: center;
+        font-size: 0.95rem;
+      }
+
+      .nav-btn:hover {
+        background: var(--surface-muted);
+        color: var(--text-primary);
+        transform: translateX(2px);
+      }
+
+      .nav-btn.active {
+        background: #e9f6f4;
+        color: var(--accent-strong);
+        border-color: #bee7e2;
+      }
+
+      .nav-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .sidebar-foot {
+        margin-top: auto;
+        border-top: 1px solid var(--border);
+        padding-top: 12px;
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+        line-height: 1.45;
+      }
+
+      .main {
+        min-width: 0;
+        background: rgba(255, 255, 255, 0.76);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 16px;
+        box-shadow: var(--shadow-soft);
+      }
+
+      .topbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 8px;
+        margin-bottom: 14px;
+      }
+
+      .goal-chip {
+        border-radius: 999px;
+        border: 1px solid #c7e5e1;
+        background: #ecf8f6;
+        color: #0d5f58;
+        padding: 8px 14px;
+        font-size: 0.84rem;
+        font-weight: 600;
+      }
+
+      .streak-chip {
+        border-radius: 999px;
+        border: 1px solid #f5d6a5;
+        background: #fff6e7;
+        color: #7a4d10;
+        padding: 8px 14px;
+        font-size: 0.84rem;
+        font-weight: 600;
+      }
+
+      .chip-muted {
+        border-color: #d9dde2;
+        background: #f5f7f9;
+        color: #4e5861;
+      }
+
+      .view {
+        display: none;
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      .view.active {
+        display: block;
+        animation: reveal 220ms ease forwards;
+      }
+
+      @keyframes reveal {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .panel {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: var(--surface);
+        padding: 16px;
+      }
+
+      .panel h2,
+      .panel h3 {
+        margin: 0 0 8px;
+      }
+
+      .muted {
+        color: var(--text-secondary);
+        font-size: 0.92rem;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+
+      .field label {
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+      }
+
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
+        padding: 11px 12px;
+        font: inherit;
+        color: var(--text-primary);
+        transition: border-color 160ms ease, box-shadow 160ms ease;
+      }
+
+      .field input:focus,
+      .field select:focus,
+      .field textarea:focus {
+        outline: none;
+        border-color: #80c9c2;
+        box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.18);
+      }
+
+      .field input:disabled {
+        background: #f3f5f7;
+        color: #7b8288;
+      }
+
+      .btn-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .btn {
+        border-radius: var(--radius-sm);
+        padding: 10px 14px;
+        font: inherit;
+        font-weight: 700;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: transform 150ms ease, filter 150ms ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        filter: brightness(0.98);
+      }
+
+      .btn.primary {
+        background: var(--accent);
+        color: #ffffff;
+      }
+
+      .btn.secondary {
+        background: #ffffff;
+        border-color: var(--border);
+        color: var(--text-primary);
+      }
+
+      .sidebar-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .sidebar-toggle-btn > span[aria-hidden="true"] {
+        font-size: 0.9rem;
+        line-height: 1;
+      }
+
+      .btn.danger {
+        background: #fff2f2;
+        color: var(--danger);
+        border-color: #f8cbcb;
+      }
+
+      .stepper {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .step {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface-muted);
+        color: var(--text-secondary);
+        text-align: center;
+        padding: 10px;
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
+      .step.active {
+        background: #e9f6f4;
+        color: var(--accent-strong);
+        border-color: #bee7e2;
+      }
+
+      .weekly-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.9fr 1fr;
+        gap: 8px;
+      }
+
+      .weekday {
+        display: contents;
+      }
+
+      .weekday > span,
+      .weekday > label,
+      .weekday > input {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: #ffffff;
+        padding: 10px;
+      }
+
+      .weekday > label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: var(--text-secondary);
+        font-weight: 600;
+      }
+
+      .kpi-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        padding: 14px;
+        animation: rise 300ms ease backwards;
+      }
+
+      .kpi-card:nth-child(1) {
+        animation-delay: 20ms;
+      }
+
+      .kpi-card:nth-child(2) {
+        animation-delay: 80ms;
+      }
+
+      .kpi-card:nth-child(3) {
+        animation-delay: 140ms;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .kpi-label {
+        color: var(--text-secondary);
+        font-size: 0.84rem;
+      }
+
+      .kpi-value {
+        margin-top: 6px;
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+
+      .progress {
+        width: 100%;
+        height: 10px;
+        background: #e7eceb;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .progress > i {
+        display: block;
+        width: 62%;
+        height: 100%;
+        background: linear-gradient(90deg, #0f766e, #20a094);
+      }
+
+      .bars {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 8px;
+        align-items: end;
+        height: 160px;
+      }
+
+      .bars i {
+        display: block;
+        background: linear-gradient(180deg, #0f766e, #7dcac3);
+        border-radius: 8px 8px 6px 6px;
+      }
+
+      .onboarding-week-chart {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 8px;
+        align-items: end;
+      }
+
+      .onboarding-day-column {
+        display: grid;
+        gap: 6px;
+        justify-items: center;
+      }
+
+      .onboarding-day-value {
+        font-size: 0.72rem;
+        color: var(--text-secondary);
+      }
+
+      .onboarding-day-bar-shell {
+        width: 100%;
+        height: 116px;
+        border-radius: 10px;
+        background: #edf2f4;
+        display: flex;
+        align-items: flex-end;
+        padding: 4px;
+      }
+
+      .onboarding-day-bar {
+        display: block;
+        width: 100%;
+        min-height: 6px;
+        border-radius: 8px 8px 5px 5px;
+        background: #8fa7b0;
+        transition: height 160ms ease, background-color 160ms ease;
+      }
+
+      .onboarding-day-bar.achieved {
+        background: #1b8f4b;
+      }
+
+      .onboarding-day-label {
+        font-size: 0.73rem;
+        color: var(--text-secondary);
+      }
+
+      .timer {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: clamp(2.1rem, 5vw, 4rem);
+        font-weight: 600;
+        letter-spacing: 1px;
+        margin: 10px 0 6px;
+      }
+
+      .timer-panel.quick-start-running {
+        box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06),
+          0 14px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      .timer.quick-start-running {
+        font-size: clamp(3.8rem, 12vw, 8.5rem);
+        line-height: 1;
+        letter-spacing: 2px;
+        margin: 14px 0 10px;
+      }
+
+      .timer.quick-start-pending {
+        color: #c62828;
+      }
+
+      .timer.quick-start-achieved {
+        color: #1b8f4b;
+      }
+
+      .quick-start-note {
+        min-height: 1.2em;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.92rem;
+      }
+
+      th,
+      td {
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        padding: 11px 6px;
+      }
+
+      th {
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .stats-layout {
+        display: grid;
+        grid-template-columns: 1.35fr 1fr;
+        gap: 12px;
+      }
+
+      .donut {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        background: conic-gradient(
+          #0f766e 0deg 170deg,
+          #8fd9d1 170deg 260deg,
+          #d7ece9 260deg 360deg
+        );
+        position: relative;
+      }
+
+      .donut::after {
+        content: "";
+        position: absolute;
+        inset: 22px;
+        border-radius: 50%;
+        background: #ffffff;
+      }
+
+      .settings-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .helper {
+        margin: 0;
+        font-size: 0.81rem;
+        color: var(--text-secondary);
+      }
+
+      .status-text {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.84rem;
+      }
+
+      .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .goal-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .goal-item {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: #ffffff;
+        padding: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .goal-item.active {
+        border-color: #b8dfda;
+        background: #eff9f7;
+      }
+
+      .goal-item.detail-open {
+        box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15);
+      }
+
+      .goal-title {
+        margin: 0;
+        font-size: 0.96rem;
+        font-weight: 700;
+      }
+
+      .goal-meta {
+        margin: 2px 0 0;
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+      }
+
+      .goal-detail-panel {
+        border-color: #c7e6e2;
+        background: #f7fcfb;
+      }
+
+      .is-hidden {
+        display: none !important;
+      }
+
+      .onboarding-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+      }
+
+      .onboarding-summary-panel {
+        min-height: 58vh;
+      }
+
+      .recent-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .recent-item {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: #ffffff;
+        padding: 10px 12px;
+      }
+
+      .recent-item p {
+        margin: 0;
+      }
+
+      .recent-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .recent-duration {
+        border: 1px solid #c4e4df;
+        background: #edf9f7;
+        color: #0d5f58;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 4px 9px;
+      }
+
+      .onboarding-create-goal {
+        border: 1px dashed #c8d5da;
+        border-radius: var(--radius-sm);
+        background: #f8fbfc;
+        padding: 12px;
+        margin-top: 10px;
+      }
+
+      .onboarding-create-goal h3 {
+        margin: 0 0 8px;
+      }
+
+      .text-action-btn {
+        background: transparent;
+        border: 0;
+        padding: 0;
+        font: inherit;
+        font-weight: 700;
+        color: var(--accent-strong);
+        cursor: pointer;
+        text-decoration: underline;
+      }
+
+      .text-action-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(17, 19, 21, 0.42);
+        display: grid;
+        place-items: center;
+        padding: 16px;
+        z-index: 100;
+      }
+
+      .modal-card {
+        width: min(460px, 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18);
+        padding: 16px;
+      }
+
+      .recent-item .meta {
+        margin-top: 4px;
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+      }
+
+      .auth-status {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+      }
+
+      .topbar-user {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #ffffff;
+        padding: 6px 10px 6px 6px;
+      }
+
+      .topbar-user-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        color: #ffffff;
+        background: linear-gradient(130deg, #0f766e, #1f9d93);
+        font-size: 0.85rem;
+        font-weight: 800;
+      }
+
+      .topbar-user-meta {
+        display: grid;
+        line-height: 1.15;
+      }
+
+      .topbar-user-name {
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      .topbar-user-email {
+        color: var(--text-secondary);
+        font-size: 0.74rem;
+      }
+
+      .login-view-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+        gap: 10px;
+        align-items: start;
+      }
+
+      .login-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: #ffffff;
+        padding: 14px;
+      }
+
+      .login-side {
+        border: 1px solid #d4e7e4;
+        border-radius: var(--radius-md);
+        background: linear-gradient(140deg, #eef9f7, #f8fcfc);
+        padding: 14px;
+      }
+
+      .login-side p {
+        margin: 0;
+      }
+
+      .login-card h2 {
+        margin: 0;
+      }
+
+      .login-card .muted {
+        margin-top: 4px;
+      }
+
+      .login-form-stack {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .login-form-stack .btn-row {
+        margin-top: 2px;
+      }
+
+      .login-form-stack .status-text {
+        min-height: 1.2em;
+      }
+
+      .login-divider {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .login-divider::before,
+      .login-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+
+      .btn.google {
+        background: #ffffff;
+        border-color: #dfe3e8;
+        color: #1f2937;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding-inline: 12px;
+      }
+
+      .google-icon {
+        width: 18px;
+        height: 18px;
+        display: block;
+      }
+
+      .sidebar-auth-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .sidebar-auth-icon {
+        width: 18px;
+        height: 18px;
+        display: grid;
+        place-items: center;
+      }
+
+      .sidebar-auth-svg {
+        width: 18px;
+        height: 18px;
+        display: block;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .achievement-chart {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+      }
+
+      .achievement-header,
+      .achievement-row {
+        display: grid;
+        grid-template-columns: 120px repeat(7, minmax(0, 1fr));
+      }
+
+      .achievement-header {
+        background: #f4f6f8;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .achievement-row {
+        border-bottom: 1px solid var(--border);
+      }
+
+      .achievement-row:last-child {
+        border-bottom: 0;
+      }
+
+      .achievement-cell {
+        padding: 10px 8px;
+        text-align: center;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+      }
+
+      .achievement-subject {
+        padding: 10px;
+        font-weight: 700;
+        color: var(--text-primary);
+        border-right: 1px solid var(--border);
+        font-size: 0.84rem;
+      }
+
+      .day-dot {
+        width: 16px;
+        height: 16px;
+        margin: 0 auto;
+        border-radius: 4px;
+        background: #e6eaee;
+      }
+
+      .day-dot.achieved {
+        background: #30a487;
+      }
+
+      .day-dot.missed {
+        background: #e9b368;
+      }
+
+      .day-dot.none {
+        background: #eceff2;
+      }
+
+      .compare-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .compare-item {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: #ffffff;
+        padding: 10px;
+        display: grid;
+        gap: 6px;
+      }
+
+      .compare-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.84rem;
+      }
+
+      .compare-head strong {
+        font-size: 0.88rem;
+      }
+
+      .compare-bar {
+        height: 8px;
+        border-radius: 999px;
+        background: #e9edf1;
+        overflow: hidden;
+      }
+
+      .compare-bar > i {
+        display: block;
+        height: 100%;
+        background: linear-gradient(90deg, #0f766e, #4db8ad);
+      }
+
+      @media (max-width: 1180px) {
+        .app-shell {
+          grid-template-columns: 90px minmax(0, 1fr);
+        }
+
+        .brand span,
+        .nav-btn .nav-label {
+          display: none;
+        }
+
+        .sidebar-foot {
+          margin-top: 10px;
+          border-top: 0;
+          padding-top: 0;
+          text-align: center;
+        }
+
+        .sidebar-foot > :not(.btn-row) {
+          display: none;
+        }
+
+        .sidebar-foot .btn-row {
+          margin-top: 0 !important;
+          justify-content: center;
+        }
+
+        .sidebar-foot .sidebar-auth-btn {
+          width: 40px;
+          height: 40px;
+          justify-content: center;
+          padding: 0;
+        }
+
+        .sidebar-foot .sidebar-auth-label {
+          display: none;
+        }
+
+        .nav-btn {
+          justify-content: center;
+          padding: 10px;
+        }
+      }
+
+      @media (max-width: 980px) {
+        .app-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .app-shell.auth-screen {
+          padding: 12px;
+        }
+
+        .sidebar {
+          position: sticky;
+          top: 0;
+          z-index: 30;
+          flex-direction: row;
+          align-items: center;
+          gap: 10px;
+          padding: 10px;
+          overflow: auto;
+        }
+
+        .brand {
+          margin: 0;
+          white-space: nowrap;
+        }
+
+        .nav-list {
+          display: flex;
+          gap: 6px;
+          flex-wrap: nowrap;
+        }
+
+        .nav-btn {
+          white-space: nowrap;
+          padding: 10px 12px;
+        }
+
+        .grid-2,
+        .grid-3,
+        .grid-4,
+        .stats-layout,
+        .settings-grid,
+        .filter-grid,
+        .onboarding-grid,
+        .login-view-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .topbar-user {
+          width: 100%;
+          justify-content: flex-start;
+        }
+
+        .achievement-header,
+        .achievement-row {
+          grid-template-columns: 90px repeat(7, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 640px) {
+        .weekly-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .weekday > span,
+        .weekday > label,
+        .weekday > input {
+          min-height: 40px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <b>LearnTime</b>
+          <span>Minimal desktop prototype</span>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-btn" data-view="onboarding">
+            <span class="nav-icon" aria-hidden="true">⌂</span>
+            <span class="nav-label">Onboarding</span>
+          </button>
+          <button class="nav-btn" data-view="dashboard">
+            <span class="nav-icon" aria-hidden="true">◫</span>
+            <span class="nav-label">Dashboard</span>
+          </button>
+          <button class="nav-btn" data-view="timer">
+            <span class="nav-icon" aria-hidden="true">◷</span>
+            <span class="nav-label">Session Timer</span>
+          </button>
+          <button class="nav-btn" data-view="history">
+            <span class="nav-icon" aria-hidden="true">≣</span>
+            <span class="nav-label">History</span>
+          </button>
+          <button class="nav-btn" data-view="stats">
+            <span class="nav-icon" aria-hidden="true">◰</span>
+            <span class="nav-label">Statistics</span>
+          </button>
+          <button class="nav-btn" data-view="goal-settings">
+            <span class="nav-icon" aria-hidden="true">◎</span>
+            <span class="nav-label">Goal Settings</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-foot">
+          Linux and Windows first
+          <br />
+          Tauri + Rust + Supabase
+          <div class="btn-row" style="margin-top: 10px">
+            <button class="btn secondary sidebar-auth-btn" id="sidebar-logout-btn" type="button">
+              <span class="sidebar-auth-icon" id="sidebar-auth-icon" aria-hidden="true"></span>
+              <span class="sidebar-auth-label" id="sidebar-auth-label">Logout</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div class="btn-row">
+            <button class="btn secondary sidebar-toggle-btn" id="sidebar-toggle-btn">
+              <span aria-hidden="true">✕</span>
+              <span>Hide sidebar</span>
+            </button>
+            <span class="goal-chip" id="active-goal-chip">Goal: IELTS 6.5</span>
+            <span class="goal-chip chip-muted" id="goal-count-chip">Total goals: 1</span>
+          </div>
+          <div class="btn-row">
+            <span class="streak-chip" id="streak-chip">Current streak: 12 days</span>
+            <div class="topbar-user is-hidden" id="topbar-user">
+              <div class="topbar-user-avatar" id="topbar-user-avatar">U</div>
+              <div class="topbar-user-meta">
+                <span class="topbar-user-name" id="topbar-user-name">User</span>
+                <span class="topbar-user-email" id="topbar-user-email">user@example.com</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="auth-status" id="auth-status"></p>
+
+        <section class="view active" id="login">
+          <div class="login-view-shell">
+            <div class="login-card">
+              <h2>Login</h2>
+              <p class="muted">Sign in to start tracking your study time.</p>
+              <div class="login-form-stack">
+                <div class="field">
+                  <label>Display name (optional)</label>
+                  <input id="login-name" type="text" placeholder="Example: Hai Ha" />
+                </div>
+                <div class="field">
+                  <label>Email</label>
+                  <input id="login-email" type="email" placeholder="you@example.com" />
+                </div>
+                <div class="field">
+                  <label>Password</label>
+                  <input id="login-password" type="password" placeholder="Enter password" />
+                </div>
+                <div class="btn-row">
+                  <button class="btn primary" id="login-submit-btn" type="button">Login</button>
+                </div>
+                <div class="login-divider">or</div>
+                <div class="btn-row">
+                  <button class="btn google" id="login-google-btn" type="button">
+                    <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path
+                        fill="#4285F4"
+                        d="M23.49 12.27c0-.79-.07-1.55-.2-2.27H12v4.3h6.45a5.5 5.5 0 0 1-2.39 3.61v2.99h3.87c2.26-2.08 3.56-5.15 3.56-8.63z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 24c3.24 0 5.95-1.07 7.94-2.9l-3.87-2.99c-1.07.72-2.44 1.14-4.07 1.14-3.13 0-5.78-2.12-6.73-4.98H1.27v3.09A12 12 0 0 0 12 24z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.27 14.27A7.2 7.2 0 0 1 4.9 12c0-.79.14-1.56.37-2.27V6.64H1.27A12 12 0 0 0 0 12c0 1.94.46 3.78 1.27 5.36l4-3.09z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 4.75c1.76 0 3.35.61 4.59 1.81l3.44-3.44C17.95 1.18 15.24 0 12 0A12 12 0 0 0 1.27 6.64l4 3.09c.95-2.86 3.6-4.98 6.73-4.98z"
+                      />
+                    </svg>
+                    <span>Continue with Google</span>
+                  </button>
+                </div>
+                <p class="status-text" id="login-status"></p>
+              </div>
+            </div>
+            <div class="login-side">
+              <h3 style="margin: 0 0 8px">LearnTime</h3>
+              <p class="muted">
+                Keep your learning streak strong with quick sessions, weekly progress, and goal tracking in one place.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="onboarding">
+          <div class="onboarding-grid">
+            <div class="panel">
+              <h2>Quick Study</h2>
+              <p class="muted">Choose your goal and start studying immediately.</p>
+              <div class="onboarding-create-goal is-hidden" id="onboarding-create-goal-panel">
+                <h3>Create your first goal</h3>
+                <p class="muted">You have no goals yet. Create one to start tracking study time.</p>
+                <div class="field" style="margin-top: 8px">
+                  <label>Goal title</label>
+                  <input id="onboarding-create-goal-title" type="text" placeholder="Example: TOEIC 800" />
+                </div>
+                <div class="field" style="margin-top: 8px">
+                  <label>Goal type</label>
+                  <input id="onboarding-create-goal-type" type="text" placeholder="Certificate, project, custom..." />
+                </div>
+                <div class="grid-2" style="margin-top: 8px">
+                  <div class="field">
+                    <label>Start date</label>
+                    <input id="onboarding-create-start-date" type="date" value="2026-06-01" />
+                  </div>
+                  <div class="field">
+                    <label>End date</label>
+                    <input id="onboarding-create-end-date" type="date" value="2026-09-20" />
+                  </div>
+                </div>
+                <div class="btn-row" style="margin-top: 10px">
+                  <button class="btn primary" id="onboarding-create-goal-btn">Create goal</button>
+                </div>
+                <p class="status-text" id="onboarding-create-goal-status" style="margin-top: 8px"></p>
+              </div>
+
+              <div id="onboarding-quick-start-panel">
+                <p class="muted" style="margin-top: 8px">
+                  One-click quick start with current active goal and current timer mode.
+                </p>
+                <p class="status-text" style="margin-top: 8px">
+                  Subject to start:
+                  <button class="text-action-btn" id="onboarding-edit-subject-btn" type="button">
+                    <span id="onboarding-quick-subject-text">English</span>
+                  </button>
+                </p>
+                <p class="status-text" style="margin-top: 6px">
+                  Work mode:
+                  <button class="text-action-btn" id="onboarding-edit-work-mode-btn" type="button">
+                    <span id="onboarding-quick-work-mode-text">Tomato Sprint (Pomodoro)</span>
+                  </button>
+                </p>
+                <p class="status-text" id="onboarding-goal-meta" style="margin-top: 8px"></p>
+                <div class="btn-row" style="margin-top: 12px">
+                  <button class="btn primary" id="onboarding-start-study">Study now</button>
+                </div>
+              </div>
+              <p class="status-text" id="onboarding-status" style="margin-top: 10px"></p>
+            </div>
+
+            <div class="panel onboarding-summary-panel">
+              <h3>Study summary this week</h3>
+              <div class="grid-3" style="margin-bottom: 12px">
+                <article class="kpi-card">
+                  <div class="kpi-label">Total time</div>
+                  <div class="kpi-value" id="onboarding-week-total-time">0h 0m</div>
+                </article>
+                <article class="kpi-card">
+                  <div class="kpi-label">Sessions</div>
+                  <div class="kpi-value" id="onboarding-week-sessions">0</div>
+                </article>
+                <article class="kpi-card">
+                  <div class="kpi-label">Average</div>
+                  <div class="kpi-value" id="onboarding-week-average">0m</div>
+                </article>
+              </div>
+              <p class="muted" id="onboarding-week-total"></p>
+              <h3 style="margin-top: 14px">Study time - last 7 days</h3>
+              <div class="onboarding-week-chart" id="onboarding-week-chart"></div>
+              <h3 style="margin-top: 14px">Recent study hours</h3>
+              <div class="recent-list" id="onboarding-recent-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="dashboard">
+          <div class="panel" style="margin-bottom: 12px">
+            <h3>Dashboard filters</h3>
+            <div class="filter-grid">
+              <div class="field">
+                <label>Goal</label>
+                <select id="dashboard-goal-filter"></select>
+              </div>
+              <div class="field">
+                <label>Time range</label>
+                <select id="dashboard-range-filter">
+                  <option value="this-week">This week</option>
+                  <option value="this-month">This month</option>
+                  <option value="last-3-months">Last 3 months</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Subject</label>
+                <select id="dashboard-subject-filter">
+                  <option value="all">All subjects</option>
+                  <option value="english">English</option>
+                  <option value="rust">Rust</option>
+                  <option value="algorithms">Algorithms</option>
+                </select>
+              </div>
+            </div>
+            <p class="muted" id="dashboard-filter-summary"></p>
+          </div>
+
+          <div class="grid-3">
+            <article class="kpi-card">
+              <div class="kpi-label">Today progress</div>
+              <div class="kpi-value" id="dashboard-today-progress">0 / 0 min</div>
+              <div class="progress"><i id="dashboard-today-progress-bar"></i></div>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-label">7-day total</div>
+              <div class="kpi-value" id="dashboard-seven-day-total">0h 0m</div>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-label">Sessions this week</div>
+              <div class="kpi-value" id="dashboard-week-sessions">0</div>
+            </article>
+          </div>
+
+          <div class="panel" style="margin-top: 12px">
+            <h3>Study trend - last 7 days</h3>
+            <div class="bars" id="dashboard-trend-bars"></div>
+            <div class="btn-row" style="margin-top: 12px">
+              <button class="btn primary" id="dashboard-start-study-btn" type="button">Start study session</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="timer">
+          <div class="panel timer-panel" id="timer-panel">
+            <h2>Session Timer</h2>
+            <p class="muted">Pick a work mode, then run a focused session.</p>
+            <div class="grid-2">
+              <div class="field">
+                <label>Subject</label>
+                <select id="timer-subject">
+                  <option>English</option>
+                  <option>Rust</option>
+                  <option>Algorithms</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Session title</label>
+                <input id="timer-session-title" type="text" value="Reading practice" />
+              </div>
+              <div class="field">
+                <label>Work mode</label>
+                <select id="timer-mode">
+                  <option value="tomato">Tomato Sprint (Pomodoro)</option>
+                  <option value="focus_clock">Focus Clock (Count up)</option>
+                </select>
+              </div>
+              <div class="field" id="tomato-length-field">
+                <label>Tomato length (minutes)</label>
+                <input
+                  id="tomato-minutes"
+                  type="number"
+                  value="25"
+                  min="1"
+                  max="180"
+                  step="1"
+                />
+              </div>
+            </div>
+
+            <div class="timer" id="timer-display">00:25:00</div>
+            <p class="helper" id="timer-mode-hint">
+              Tomato Sprint counts down from selected minutes.
+            </p>
+            <p class="status-text quick-start-note" id="quick-start-status"></p>
+
+            <div class="btn-row" style="margin: 12px 0 10px">
+              <button class="btn primary" id="timer-start">Start</button>
+              <button class="btn secondary" id="timer-pause">Pause</button>
+              <button class="btn danger" id="timer-stop">Stop</button>
+            </div>
+
+            <div class="field">
+              <label>Quick notes</label>
+              <textarea id="timer-quick-note" rows="4" placeholder="What did you finish in this session?"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="history">
+          <div class="panel">
+            <h2>History</h2>
+            <p class="muted">Quick scan with date range filters.</p>
+
+            <div class="grid-4" style="margin-bottom: 10px">
+              <div class="field">
+                <label>Search</label>
+                <input id="history-search" type="text" placeholder="Search title or subject" />
+              </div>
+              <div class="field">
+                <label>From date</label>
+                <input id="history-from-date" type="date" />
+              </div>
+              <div class="field">
+                <label>To date</label>
+                <input id="history-to-date" type="date" />
+              </div>
+              <div class="field">
+                <label>Subject</label>
+                <select id="history-subject-filter">
+                  <option>All subjects</option>
+                  <option>English</option>
+                  <option>Rust</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="btn-row" style="margin-bottom: 10px">
+              <button class="btn secondary" id="history-add-manual-btn" type="button">Add manual session</button>
+              <button class="btn secondary" id="history-export-json-btn" type="button">Export JSON</button>
+              <button class="btn secondary" id="history-export-csv-btn" type="button">Export CSV</button>
+            </div>
+            <p class="status-text" id="history-status" style="margin-bottom: 8px"></p>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Goal</th>
+                  <th>Subject</th>
+                  <th>Title</th>
+                  <th>Duration</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="history-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" id="stats">
+          <div class="panel">
+            <h2>Statistics</h2>
+            <p class="muted" id="stats-active-goal-label"></p>
+            <div class="btn-row" style="margin-bottom: 12px">
+              <button class="btn secondary">This week</button>
+              <button class="btn secondary">This month</button>
+              <button class="btn secondary">Last 3 months</button>
+              <button class="btn secondary">Custom range</button>
+            </div>
+
+            <div class="grid-3" style="margin-bottom: 12px">
+              <article class="kpi-card">
+                <div class="kpi-label">Total study time</div>
+                <div class="kpi-value" id="stats-total-time">0h 0m</div>
+              </article>
+              <article class="kpi-card">
+                <div class="kpi-label">Goal achieved days</div>
+                <div class="kpi-value" id="stats-achieved-days">0 days</div>
+              </article>
+              <article class="kpi-card">
+                <div class="kpi-label">Average per day</div>
+                <div class="kpi-value" id="stats-average-time">0m</div>
+              </article>
+            </div>
+
+            <div class="stats-layout">
+              <div class="panel">
+                <h3>Weekly trend</h3>
+                <div class="bars" style="height: 130px">
+                  <i style="height: 25%"></i>
+                  <i style="height: 48%"></i>
+                  <i style="height: 67%"></i>
+                  <i style="height: 58%"></i>
+                  <i style="height: 82%"></i>
+                  <i style="height: 70%"></i>
+                  <i style="height: 74%"></i>
+                </div>
+              </div>
+
+              <div class="panel">
+                <h3>Subject split</h3>
+                <div style="display: flex; align-items: center; gap: 14px">
+                  <div class="donut"></div>
+                  <div class="muted">
+                    English: 47%<br />
+                    Rust: 25%<br />
+                    Algorithms: 28%
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel" style="margin-top: 12px">
+              <h3>Daily goal achievement by subject</h3>
+              <p class="muted">Green means achieved, orange means below target, gray means no study log.</p>
+              <div class="achievement-chart" id="subject-achievement-chart" style="margin-top: 10px"></div>
+            </div>
+
+            <div class="stats-layout" style="margin-top: 12px">
+              <div class="panel">
+                <h3>Streak analytics</h3>
+                <div class="grid-2" style="margin-top: 8px">
+                  <article class="kpi-card">
+                    <div class="kpi-label">Highest streak overall</div>
+                    <div class="kpi-value" id="stats-highest-streak">0 days</div>
+                  </article>
+                  <article class="kpi-card">
+                    <div class="kpi-label">Current active goal streak</div>
+                    <div class="kpi-value" id="stats-current-goal-streak">0 days</div>
+                  </article>
+                </div>
+              </div>
+
+              <div class="panel">
+                <h3>Streak by subject</h3>
+                <div class="compare-list" id="stats-subject-streak-list"></div>
+              </div>
+            </div>
+
+            <div class="panel" style="margin-top: 12px">
+              <h3>Streak by goal</h3>
+              <div class="compare-list" id="stats-goal-streak-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="goal-settings">
+          <div class="panel" style="margin-bottom: 12px">
+            <h2>Goal Settings</h2>
+            <p class="muted">Manage many goals and choose one active goal for study tracking.</p>
+          </div>
+
+          <div class="settings-grid">
+            <div class="panel">
+              <h3>Create goal</h3>
+              <div class="field">
+                <label>Goal title</label>
+                <input
+                  id="settings-goal-title"
+                  type="text"
+                  placeholder="Example: TOEIC 800"
+                />
+              </div>
+              <div class="field" style="margin-top: 8px">
+                <label>Goal type</label>
+                <input
+                  id="settings-goal-type"
+                  type="text"
+                  placeholder="Certificate, custom skill, project..."
+                />
+              </div>
+              <div class="grid-2" style="margin-top: 8px">
+                <div class="field">
+                  <label>Start date</label>
+                  <input id="settings-start-date" type="date" value="2026-06-01" />
+                </div>
+                <div class="field">
+                  <label>End date</label>
+                  <input id="settings-end-date" type="date" value="2026-09-20" />
+                </div>
+              </div>
+              <div class="btn-row" style="margin-top: 10px">
+                <button class="btn primary" id="add-goal-btn">Add goal</button>
+              </div>
+              <p class="status-text" id="settings-goal-status" style="margin-top: 8px"></p>
+            </div>
+
+            <div class="panel">
+              <h3>Subjects</h3>
+              <div class="field">
+                <label>Subject name</label>
+                <input id="subject-name-input" type="text" placeholder="Example: Japanese" />
+              </div>
+              <div class="btn-row" style="margin-top: 10px">
+                <button class="btn primary" id="add-subject-btn" type="button">Add subject</button>
+              </div>
+              <p class="status-text" id="subject-status" style="margin-top: 8px"></p>
+              <div id="subject-list" style="margin-top: 10px"></div>
+            </div>
+
+            <div class="panel">
+              <h3>Reminder</h3>
+              <div class="field">
+                <label>Reminder time</label>
+                <input type="time" value="19:30" />
+              </div>
+              <div class="field" style="margin-top: 8px">
+                <label>Status</label>
+                <select>
+                  <option>Enabled</option>
+                  <option>Disabled</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top: 12px">
+            <h3>Goal list</h3>
+            <p class="muted">Click Detail to open settings for each goal.</p>
+            <div class="goal-list" id="goal-list"></div>
+          </div>
+
+          <div class="panel goal-detail-panel is-hidden" id="goal-detail-panel" style="margin-top: 12px">
+            <div class="btn-row">
+              <h3 id="goal-detail-title">Goal detail</h3>
+              <button class="btn secondary" id="goal-detail-back-btn">Back to list</button>
+            </div>
+            <p class="muted" id="goal-detail-meta"></p>
+            <div class="btn-row" style="margin-top: 10px">
+              <button class="btn secondary" id="goal-detail-set-active-btn">Set as active goal</button>
+            </div>
+            <h3 style="margin-top: 14px">Weekly targets</h3>
+            <p class="muted">Update weekly targets for this selected goal.</p>
+            <div class="weekly-grid">
+              <div class="weekday">
+                <span>Monday</span>
+                <label><input data-weekday="1" type="checkbox" checked /> Active</label>
+                <input data-weekday="1" type="number" value="120" min="0" step="5" />
+              </div>
+              <div class="weekday">
+                <span>Tuesday</span>
+                <label><input data-weekday="2" type="checkbox" checked /> Active</label>
+                <input data-weekday="2" type="number" value="120" min="0" step="5" />
+              </div>
+              <div class="weekday">
+                <span>Wednesday</span>
+                <label><input data-weekday="3" type="checkbox" checked /> Active</label>
+                <input data-weekday="3" type="number" value="90" min="0" step="5" />
+              </div>
+              <div class="weekday">
+                <span>Thursday</span>
+                <label><input data-weekday="4" type="checkbox" checked /> Active</label>
+                <input data-weekday="4" type="number" value="120" min="0" step="5" />
+              </div>
+              <div class="weekday">
+                <span>Friday</span>
+                <label><input data-weekday="5" type="checkbox" checked /> Active</label>
+                <input data-weekday="5" type="number" value="90" min="0" step="5" />
+              </div>
+              <div class="weekday">
+                <span>Saturday</span>
+                <label><input data-weekday="6" type="checkbox" checked /> Active</label>
+                <input data-weekday="6" type="number" value="60" min="0" step="5" />
+              </div>
+              <div class="weekday">
+                <span>Sunday</span>
+                <label><input data-weekday="7" type="checkbox" /> Rest day</label>
+                <input data-weekday="7" type="number" value="0" min="0" step="5" />
+              </div>
+            </div>
+            <div class="btn-row" style="margin-top: 10px">
+              <button class="btn primary" id="save-weekly-targets-btn">Save weekly targets</button>
+            </div>
+            <p class="status-text" id="weekly-target-status" style="margin-top: 8px"></p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-overlay is-hidden" id="quick-subject-modal">
+      <div class="modal-card">
+        <h3>Edit Quick Study Subject</h3>
+        <p class="muted">Choose the subject that will be started by Quick Study.</p>
+        <div class="field" style="margin-top: 10px">
+          <label>Subject</label>
+          <select id="quick-subject-select">
+            <option value="English">English</option>
+            <option value="Rust">Rust</option>
+            <option value="Algorithms">Algorithms</option>
+          </select>
+        </div>
+        <div class="btn-row" style="margin-top: 12px">
+          <button class="btn primary" id="quick-subject-save-btn" type="button">Save</button>
+          <button class="btn secondary" id="quick-subject-cancel-btn" type="button">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay is-hidden" id="quick-work-mode-modal">
+      <div class="modal-card">
+        <h3>Edit Quick Study Work Mode</h3>
+        <p class="muted">Choose the work mode used by Quick Study.</p>
+        <div class="field" style="margin-top: 10px">
+          <label>Work mode</label>
+          <select id="quick-work-mode-select">
+            <option value="tomato">Tomato Sprint (Pomodoro)</option>
+            <option value="focus_clock">Focus Clock (Count up)</option>
+          </select>
+        </div>
+        <div class="btn-row" style="margin-top: 12px">
+          <button class="btn primary" id="quick-work-mode-save-btn" type="button">Save</button>
+          <button class="btn secondary" id="quick-work-mode-cancel-btn" type="button">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./app-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      const navButtons = Array.from(document.querySelectorAll(".nav-btn"));
+      const views = Array.from(document.querySelectorAll(".view"));
+
+      const activeGoalChip = document.getElementById("active-goal-chip");
+      const goalCountChip = document.getElementById("goal-count-chip");
+      const streakChip = document.getElementById("streak-chip");
+      const authStatus = document.getElementById("auth-status");
+      const topbarUser = document.getElementById("topbar-user");
+      const topbarUserAvatar = document.getElementById("topbar-user-avatar");
+      const topbarUserName = document.getElementById("topbar-user-name");
+      const topbarUserEmail = document.getElementById("topbar-user-email");
+      const appShell = document.querySelector(".app-shell");
+      const sidebarToggleButton = document.getElementById("sidebar-toggle-btn");
+      const sidebarLogoutButton = document.getElementById("sidebar-logout-btn");
+      const sidebarAuthIcon = document.getElementById("sidebar-auth-icon");
+      const sidebarAuthLabel = document.getElementById("sidebar-auth-label");
+
+      const loginNameInput = document.getElementById("login-name");
+      const loginEmailInput = document.getElementById("login-email");
+      const loginPasswordInput = document.getElementById("login-password");
+      const loginSubmitButton = document.getElementById("login-submit-btn");
+      const loginGoogleButton = document.getElementById("login-google-btn");
+      const loginStatus = document.getElementById("login-status");
+
+      const onboardingQuickStartPanel = document.getElementById("onboarding-quick-start-panel");
+      const onboardingCreateGoalPanel = document.getElementById("onboarding-create-goal-panel");
+      const onboardingCreateGoalTitle = document.getElementById("onboarding-create-goal-title");
+      const onboardingCreateGoalType = document.getElementById("onboarding-create-goal-type");
+      const onboardingCreateStartDate = document.getElementById("onboarding-create-start-date");
+      const onboardingCreateEndDate = document.getElementById("onboarding-create-end-date");
+      const onboardingCreateGoalButton = document.getElementById("onboarding-create-goal-btn");
+      const onboardingCreateGoalStatus = document.getElementById("onboarding-create-goal-status");
+      const onboardingQuickSubjectText = document.getElementById("onboarding-quick-subject-text");
+      const onboardingEditSubjectButton = document.getElementById("onboarding-edit-subject-btn");
+      const onboardingQuickWorkModeText = document.getElementById("onboarding-quick-work-mode-text");
+      const onboardingEditWorkModeButton = document.getElementById("onboarding-edit-work-mode-btn");
+      const onboardingGoalMeta = document.getElementById("onboarding-goal-meta");
+      const onboardingStartStudy = document.getElementById("onboarding-start-study");
+      const onboardingStatus = document.getElementById("onboarding-status");
+      const onboardingWeekTotal = document.getElementById("onboarding-week-total");
+      const onboardingWeekTotalTime = document.getElementById("onboarding-week-total-time");
+      const onboardingWeekSessions = document.getElementById("onboarding-week-sessions");
+      const onboardingWeekAverage = document.getElementById("onboarding-week-average");
+      const onboardingWeekChart = document.getElementById("onboarding-week-chart");
+      const onboardingRecentList = document.getElementById("onboarding-recent-list");
+
+      const settingsGoalTitle = document.getElementById("settings-goal-title");
+      const settingsGoalType = document.getElementById("settings-goal-type");
+      const settingsStartDate = document.getElementById("settings-start-date");
+      const settingsEndDate = document.getElementById("settings-end-date");
+      const addGoalButton = document.getElementById("add-goal-btn");
+      const settingsGoalStatus = document.getElementById("settings-goal-status");
+      const goalList = document.getElementById("goal-list");
+      const goalDetailPanel = document.getElementById("goal-detail-panel");
+      const goalDetailTitle = document.getElementById("goal-detail-title");
+      const goalDetailMeta = document.getElementById("goal-detail-meta");
+      const goalDetailSetActiveButton = document.getElementById("goal-detail-set-active-btn");
+      const goalDetailBackButton = document.getElementById("goal-detail-back-btn");
+
+      const saveWeeklyTargetsButton = document.getElementById("save-weekly-targets-btn");
+      const weeklyTargetStatus = document.getElementById("weekly-target-status");
+      const weeklyTargetChecks = Array.from(
+        document.querySelectorAll("#goal-settings .weekly-grid input[type='checkbox'][data-weekday]")
+      );
+      const weeklyTargetMinuteInputs = Array.from(
+        document.querySelectorAll("#goal-settings .weekly-grid input[type='number'][data-weekday]")
+      );
+
+      const dashboardGoalFilter = document.getElementById("dashboard-goal-filter");
+      const dashboardRangeFilter = document.getElementById("dashboard-range-filter");
+      const dashboardSubjectFilter = document.getElementById("dashboard-subject-filter");
+      const dashboardFilterSummary = document.getElementById("dashboard-filter-summary");
+
+      const statsActiveGoalLabel = document.getElementById("stats-active-goal-label");
+      const statsTotalTime = document.getElementById("stats-total-time");
+      const statsAchievedDays = document.getElementById("stats-achieved-days");
+      const statsAverageTime = document.getElementById("stats-average-time");
+      const subjectAchievementChart = document.getElementById("subject-achievement-chart");
+      const statsHighestStreak = document.getElementById("stats-highest-streak");
+      const statsCurrentGoalStreak = document.getElementById("stats-current-goal-streak");
+      const statsSubjectStreakList = document.getElementById("stats-subject-streak-list");
+      const statsGoalStreakList = document.getElementById("stats-goal-streak-list");
+
+      const quickSubjectModal = document.getElementById("quick-subject-modal");
+      const quickSubjectSelect = document.getElementById("quick-subject-select");
+      const quickSubjectSaveButton = document.getElementById("quick-subject-save-btn");
+      const quickSubjectCancelButton = document.getElementById("quick-subject-cancel-btn");
+      const quickWorkModeModal = document.getElementById("quick-work-mode-modal");
+      const quickWorkModeSelect = document.getElementById("quick-work-mode-select");
+      const quickWorkModeSaveButton = document.getElementById("quick-work-mode-save-btn");
+      const quickWorkModeCancelButton = document.getElementById("quick-work-mode-cancel-btn");
+
+      const timerDisplay = document.getElementById("timer-display");
+      const startButton = document.getElementById("timer-start");
+      const pauseButton = document.getElementById("timer-pause");
+      const stopButton = document.getElementById("timer-stop");
+      const timerSubjectSelect = document.getElementById("timer-subject");
+      const timerModeSelect = document.getElementById("timer-mode");
+      const tomatoMinutesInput = document.getElementById("tomato-minutes");
+      const tomatoLengthField = document.getElementById("tomato-length-field");
+      const timerModeHint = document.getElementById("timer-mode-hint");
+      const timerPanel = document.getElementById("timer-panel");
+      const quickStartStatus = document.getElementById("quick-start-status");
+      const timerSessionTitleInput = document.getElementById("timer-session-title");
+      const timerQuickNoteInput = document.getElementById("timer-quick-note");
+
+      const dashboardTodayProgress = document.getElementById("dashboard-today-progress");
+      const dashboardTodayProgressBar = document.getElementById("dashboard-today-progress-bar");
+      const dashboardSevenDayTotal = document.getElementById("dashboard-seven-day-total");
+      const dashboardWeekSessions = document.getElementById("dashboard-week-sessions");
+      const dashboardTrendBars = document.getElementById("dashboard-trend-bars");
+      const dashboardStartStudyButton = document.getElementById("dashboard-start-study-btn");
+
+      const historySearchInput = document.getElementById("history-search");
+      const historyFromDateInput = document.getElementById("history-from-date");
+      const historyToDateInput = document.getElementById("history-to-date");
+      const historySubjectFilter = document.getElementById("history-subject-filter");
+      const historyAddManualButton = document.getElementById("history-add-manual-btn");
+      const historyExportJsonButton = document.getElementById("history-export-json-btn");
+      const historyExportCsvButton = document.getElementById("history-export-csv-btn");
+      const historyStatus = document.getElementById("history-status");
+      const historyTableBody = document.getElementById("history-table-body");
+
+      const subjectNameInput = document.getElementById("subject-name-input");
+      const addSubjectButton = document.getElementById("add-subject-btn");
+      const subjectStatus = document.getElementById("subject-status");
+      const subjectList = document.getElementById("subject-list");
+
+      const APP_STORAGE_PREFIX = "learntime.v2.user";
+      const SUPABASE_URL = String(window.LEARNTIME_SUPABASE_URL || "").trim();
+      const SUPABASE_ANON_KEY = String(window.LEARNTIME_SUPABASE_ANON_KEY || "").trim();
+      const supabaseClient =
+        typeof window.supabase !== "undefined" && SUPABASE_URL && SUPABASE_ANON_KEY
+          ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+          : null;
+
+      const defaultStreakText = "Current streak: 12 days";
+      let isLoggedIn = false;
+      let currentUser = null;
+
+      const seedGoals = [
+        {
+          id: "goal-1",
+          title: "IELTS 6.5",
+          type: "Certificate",
+          startDate: "2026-06-01",
+          endDate: "2026-09-20",
+          isActive: true,
+        },
+        {
+          id: "goal-2",
+          title: "JLPT N3",
+          type: "Certificate",
+          startDate: "2026-06-10",
+          endDate: "2026-10-01",
+          isActive: false,
+        },
+      ];
+
+      const seedWeeklyTargetsByGoal = {
+        "goal-1": { 1: 120, 2: 120, 3: 90, 4: 120, 5: 90, 6: 60, 7: 0 },
+        "goal-2": { 1: 90, 2: 90, 3: 60, 4: 90, 5: 60, 6: 45, 7: 0 },
+      };
+
+      const seedSessions = [
+        { goalId: "goal-1", subject: "English", title: "Listening mock test", date: "2026-05-17", durationMinutes: 75 },
+        { goalId: "goal-1", subject: "Rust", title: "Ownership drills", date: "2026-05-17", durationMinutes: 55 },
+        { goalId: "goal-1", subject: "English", title: "Reading part 1", date: "2026-05-18", durationMinutes: 70 },
+        { goalId: "goal-1", subject: "Algorithms", title: "Graph review", date: "2026-05-18", durationMinutes: 40 },
+        { goalId: "goal-1", subject: "Rust", title: "Borrow checker", date: "2026-05-19", durationMinutes: 95 },
+        { goalId: "goal-1", subject: "English", title: "Writing task 2", date: "2026-05-20", durationMinutes: 80 },
+        { goalId: "goal-1", subject: "Algorithms", title: "DP exercises", date: "2026-05-20", durationMinutes: 50 },
+        { goalId: "goal-1", subject: "English", title: "Speaking practice", date: "2026-05-21", durationMinutes: 60 },
+        { goalId: "goal-1", subject: "Rust", title: "Trait object notes", date: "2026-05-22", durationMinutes: 70 },
+        { goalId: "goal-1", subject: "English", title: "Vocabulary review", date: "2026-05-23", durationMinutes: 55 },
+        { goalId: "goal-2", subject: "Japanese", title: "Kanji review", date: "2026-05-17", durationMinutes: 60 },
+        { goalId: "goal-2", subject: "Japanese", title: "Grammar lesson", date: "2026-05-18", durationMinutes: 55 },
+        { goalId: "goal-2", subject: "Japanese", title: "Listening N3", date: "2026-05-20", durationMinutes: 65 },
+        { goalId: "goal-2", subject: "Japanese", title: "Reading set", date: "2026-05-21", durationMinutes: 45 },
+        { goalId: "goal-2", subject: "Japanese", title: "Vocabulary", date: "2026-05-22", durationMinutes: 58 },
+      ];
+
+      function cloneObject(value) {
+        return JSON.parse(JSON.stringify(value));
+      }
+
+      function normalizedUserId(value) {
+        const normalized = String(value || "")
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+        return normalized || "user";
+      }
+
+      function storageKeyForUser(userId) {
+        return APP_STORAGE_PREFIX + "." + normalizedUserId(userId);
+      }
+
+      function safeParseJson(rawValue) {
+        if (!rawValue) {
+          return null;
+        }
+        try {
+          return JSON.parse(rawValue);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function createSessionId() {
+        return "session-" + Date.now() + "-" + Math.floor(Math.random() * 1000000);
+      }
+
+      function seedDataForUser(userId) {
+        return {
+          subjects: ["English", "Rust", "Algorithms", "Japanese"],
+          goals: cloneObject(seedGoals),
+          weeklyTargetsByGoal: cloneObject(seedWeeklyTargetsByGoal),
+          studySessions: seedSessions.map((session, index) => ({
+            id: "seed-" + (index + 1),
+            userId,
+            goalId: session.goalId,
+            subject: session.subject,
+            title: session.title,
+            date: session.date,
+            durationMinutes: session.durationMinutes,
+            workMode: "focus_clock",
+            note: "",
+            startTime: session.date + "T00:00:00",
+            endTime: session.date + "T00:00:00",
+          })),
+          quickStudySubject: "English",
+          quickStudyWorkMode: "focus_clock",
+        };
+      }
+
+      function normalizeGoals(nextGoals) {
+        if (!Array.isArray(nextGoals)) {
+          return [];
+        }
+        return nextGoals
+          .map((goal) => ({
+            id: String(goal.id || createGoalId()),
+            title: String(goal.title || "").trim(),
+            type: String(goal.type || "").trim(),
+            startDate: String(goal.startDate || ""),
+            endDate: String(goal.endDate || ""),
+            isActive: Boolean(goal.isActive),
+          }))
+          .filter((goal) => goal.title.length > 0 && goal.type.length > 0);
+      }
+
+      function normalizeWeeklyTargetsMap(nextMap, goalList) {
+        const fallback = defaultWeeklyTargets();
+        const source = nextMap && typeof nextMap === "object" ? nextMap : {};
+        const normalized = {};
+
+        goalList.forEach((goal) => {
+          const targetMap = source[goal.id] || fallback;
+          normalized[goal.id] = {};
+          for (let day = 1; day <= 7; day += 1) {
+            normalized[goal.id][day] = Math.max(0, Number(targetMap[day] || 0));
+          }
+        });
+
+        return normalized;
+      }
+
+      function normalizeSubjects(nextSubjects) {
+        if (!Array.isArray(nextSubjects)) {
+          return [];
+        }
+        return Array.from(
+          new Set(
+            nextSubjects
+              .map((subject) => String(subject || "").trim())
+              .filter((subject) => subject.length > 0)
+          )
+        );
+      }
+
+      function normalizeSessions(nextSessions, userId) {
+        if (!Array.isArray(nextSessions)) {
+          return [];
+        }
+        return nextSessions
+          .map((session) => ({
+            id: String(session.id || createSessionId()),
+            userId,
+            goalId: String(session.goalId || ""),
+            subject: String(session.subject || "General"),
+            title: String(session.title || "Study session"),
+            date: String(session.date || ""),
+            durationMinutes: Math.max(0, Number(session.durationMinutes || 0)),
+            workMode: normalizeWorkMode(session.workMode),
+            note: String(session.note || ""),
+            startTime: String(session.startTime || ""),
+            endTime: String(session.endTime || ""),
+          }))
+          .filter((session) => session.goalId.length > 0 && session.date.length > 0);
+      }
+
+      function loadStoredUserData(userId) {
+        const stored = safeParseJson(localStorage.getItem(storageKeyForUser(userId)));
+        if (!stored) {
+          return seedDataForUser(userId);
+        }
+
+        const normalizedGoals = normalizeGoals(stored.goals);
+        const goalsWithActive =
+          normalizedGoals.length > 0 && !normalizedGoals.some((goal) => goal.isActive)
+            ? normalizedGoals.map((goal, index) => ({ ...goal, isActive: index === 0 }))
+            : normalizedGoals;
+
+        const normalizedSubjects = normalizeSubjects(stored.subjects);
+
+        return {
+          goals: goalsWithActive,
+          weeklyTargetsByGoal: normalizeWeeklyTargetsMap(stored.weeklyTargetsByGoal, goalsWithActive),
+          subjects: normalizedSubjects.length > 0 ? normalizedSubjects : ["General"],
+          studySessions: normalizeSessions(stored.studySessions, userId),
+          quickStudySubject: String(stored.quickStudySubject || ""),
+          quickStudyWorkMode: String(stored.quickStudyWorkMode || "focus_clock"),
+        };
+      }
+
+      let goals = [];
+      let weeklyTargetsByGoal = {};
+      let subjects = [];
+      let studySessions = [];
+
+      const subjectDailyTargets = {
+        English: 60,
+        Rust: 60,
+        Algorithms: 45,
+        Japanese: 50,
+      };
+
+      let timerId = null;
+      let timerSeconds = 25 * 60;
+      let timerSessionStartedAt = null;
+      let isQuickStartSession = false;
+      let quickStartTargetMinutes = 0;
+      let quickStartInitialSeconds = 0;
+      let quickStartWorkMode = "focus_clock";
+      let selectedGoalDetailId = null;
+      let isSidebarHidden = false;
+      let quickStudySubject = "English";
+      let quickStudyWorkMode = "focus_clock";
+
+      function persistCurrentUserData() {
+        if (!isLoggedIn || !currentUser) {
+          return;
+        }
+
+        const payload = {
+          goals,
+          weeklyTargetsByGoal,
+          subjects,
+          studySessions,
+          quickStudySubject,
+          quickStudyWorkMode,
+        };
+
+        localStorage.setItem(storageKeyForUser(currentUser.id), JSON.stringify(payload));
+      }
+
+      function applyLoadedUserData(user) {
+        const loaded = loadStoredUserData(user.id);
+
+        goals = loaded.goals;
+        weeklyTargetsByGoal = loaded.weeklyTargetsByGoal;
+        subjects = loaded.subjects;
+        studySessions = loaded.studySessions;
+        selectedGoalDetailId = null;
+
+        quickStudySubject = loaded.quickStudySubject || loaded.subjects[0] || "General";
+        quickStudyWorkMode = loaded.quickStudyWorkMode || "focus_clock";
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function createGoalId() {
+        return "goal-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+      }
+
+      function showStatus(element, message, isError = false) {
+        if (!element) {
+          return;
+        }
+        element.textContent = message;
+        element.style.color = isError ? "var(--danger)" : "var(--text-secondary)";
+      }
+
+      function sidebarAuthIconMarkup(isLogoutState) {
+        if (isLogoutState) {
+          return (
+            '<svg class="sidebar-auth-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+              '<path d="M9 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3"></path>' +
+              '<path d="M16 17l5-5-5-5"></path>' +
+              '<path d="M21 12H9"></path>' +
+            '</svg>'
+          );
+        }
+
+        return (
+          '<svg class="sidebar-auth-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+            '<path d="M15 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"></path>' +
+            '<path d="M8 17l-5-5 5-5"></path>' +
+            '<path d="M3 12h12"></path>' +
+          '</svg>'
+        );
+      }
+
+      function renderSidebarAuthButton() {
+        const isLogoutState = isLoggedIn;
+        sidebarAuthIcon.innerHTML = sidebarAuthIconMarkup(isLogoutState);
+        sidebarAuthLabel.textContent = isLogoutState ? "Logout" : "Login";
+        sidebarLogoutButton.setAttribute("aria-label", isLogoutState ? "Logout" : "Login");
+        sidebarLogoutButton.setAttribute("title", isLogoutState ? "Logout" : "Login");
+      }
+
+      function formatDisplayName(rawName, emailValue) {
+        const fromName = rawName.trim();
+        if (fromName) {
+          return fromName;
+        }
+
+        const localPart = String(emailValue || "")
+          .trim()
+          .split("@")[0]
+          .replace(/[._-]+/g, " ")
+          .trim();
+
+        if (!localPart) {
+          return "Learner";
+        }
+
+        return localPart
+          .split(/\s+/)
+          .filter((part) => part.length > 0)
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(" ");
+      }
+
+      function profileInitials(nameValue) {
+        const parts = String(nameValue || "")
+          .trim()
+          .split(/\s+/)
+          .filter((part) => part.length > 0);
+
+        if (parts.length === 0) {
+          return "U";
+        }
+
+        const first = parts[0].charAt(0);
+        const second = parts.length > 1 ? parts[parts.length - 1].charAt(0) : "";
+        return (first + second).toUpperCase();
+      }
+
+      function applyUserProfileUi() {
+        const hasUser = isLoggedIn && currentUser;
+        topbarUser.classList.toggle("is-hidden", !hasUser);
+        if (!hasUser) {
+          topbarUserAvatar.textContent = "U";
+          topbarUserName.textContent = "User";
+          topbarUserEmail.textContent = "user@example.com";
+          return;
+        }
+
+        topbarUserAvatar.textContent = profileInitials(currentUser.name);
+        topbarUserName.textContent = currentUser.name;
+        topbarUserEmail.textContent = currentUser.email;
+      }
+
+      function formatMinutes(totalMinutes) {
+        const minutes = Math.max(0, Math.round(totalMinutes));
+        const hoursPart = Math.floor(minutes / 60);
+        const minutePart = minutes % 60;
+        return hoursPart + "h " + minutePart + "m";
+      }
+
+      function formatMinutesCompact(totalMinutes) {
+        const minutes = Math.max(0, Math.round(totalMinutes));
+        if (minutes < 60) {
+          return minutes + "m";
+        }
+        const hoursPart = Math.floor(minutes / 60);
+        const minutePart = minutes % 60;
+        if (minutePart === 0) {
+          return hoursPart + "h";
+        }
+        return hoursPart + "h " + minutePart + "m";
+      }
+
+      function parseDateKey(dateKey) {
+        return new Date(dateKey + "T00:00:00");
+      }
+
+      function dateKey(dateObj) {
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const day = String(dateObj.getDate()).padStart(2, "0");
+        return year + "-" + month + "-" + day;
+      }
+
+      function weekdayNumber(dateValue) {
+        const day = parseDateKey(dateValue).getDay();
+        return day === 0 ? 7 : day;
+      }
+
+      function shortDayLabel(dateValue) {
+        const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        return labels[parseDateKey(dateValue).getDay()];
+      }
+
+      function shortDayDateLabel(dateValue) {
+        const dateObj = parseDateKey(dateValue);
+        const day = String(dateObj.getDate()).padStart(2, "0");
+        const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+        return shortDayLabel(dateValue) + " " + day + "/" + month;
+      }
+
+      function timerSubjectValues() {
+        return subjects.slice();
+      }
+
+      function latestCreatedSubjectValue() {
+        const subjectValues = timerSubjectValues();
+        return subjectValues.length > 0 ? subjectValues.at(-1) : "General";
+      }
+
+      function normalizeQuickSubject(subject) {
+        const subjectValues = timerSubjectValues();
+        if (subjectValues.length === 0) {
+          return "General";
+        }
+        return subjectValues.includes(subject) ? subject : latestCreatedSubjectValue();
+      }
+
+      function ensureSubjectDailyTarget(subject) {
+        if (!subjectDailyTargets[subject]) {
+          subjectDailyTargets[subject] = 60;
+        }
+      }
+
+      function renderSubjectSelectors() {
+        const normalizedSubjects = normalizeSubjects(subjects);
+        subjects = normalizedSubjects.length > 0 ? normalizedSubjects : ["General"];
+        subjects.forEach((subject) => ensureSubjectDailyTarget(subject));
+
+        const timerCurrent = timerSubjectSelect.value;
+        const dashboardCurrent = dashboardSubjectFilter.value;
+        const historyCurrent = historySubjectFilter.value;
+
+        const optionsMarkup = subjects
+          .map((subject) => '<option value="' + escapeHtml(subject) + '">' + escapeHtml(subject) + '</option>')
+          .join("");
+
+        timerSubjectSelect.innerHTML = optionsMarkup;
+        quickSubjectSelect.innerHTML = optionsMarkup;
+        dashboardSubjectFilter.innerHTML =
+          '<option value="all">All subjects</option>' +
+          optionsMarkup;
+        historySubjectFilter.innerHTML =
+          '<option value="all">All subjects</option>' +
+          optionsMarkup;
+
+        timerSubjectSelect.value = subjects.includes(timerCurrent) ? timerCurrent : subjects[0];
+        dashboardSubjectFilter.value =
+          dashboardCurrent === "all" || subjects.includes(dashboardCurrent)
+            ? dashboardCurrent || "all"
+            : "all";
+        historySubjectFilter.value =
+          historyCurrent === "all" || subjects.includes(historyCurrent)
+            ? historyCurrent || "all"
+            : "all";
+      }
+
+      function renderSubjectList() {
+        if (subjects.length === 0) {
+          subjectList.innerHTML = '<p class="muted">No subjects yet.</p>';
+          return;
+        }
+
+        subjectList.innerHTML = subjects
+          .map((subject) => {
+            return (
+              '<article class="goal-item">' +
+                '<div>' +
+                  '<p class="goal-title">' + escapeHtml(subject) + '</p>' +
+                  '<p class="goal-meta">Daily target: ' + (subjectDailyTargets[subject] || 60) + ' min</p>' +
+                '</div>' +
+                '<div class="btn-row">' +
+                  '<button class="btn secondary" data-action="rename-subject" data-subject="' + escapeHtml(subject) + '">Edit</button>' +
+                  '<button class="btn danger" data-action="delete-subject" data-subject="' + escapeHtml(subject) + '">Delete</button>' +
+                '</div>' +
+              '</article>'
+            );
+          })
+          .join("");
+      }
+
+      function addSubject(subjectName) {
+        const normalizedName = String(subjectName || "").trim();
+        if (!normalizedName) {
+          return "Subject name is required.";
+        }
+
+        if (subjects.some((subject) => subject.toLowerCase() === normalizedName.toLowerCase())) {
+          return "Subject already exists.";
+        }
+
+        subjects = [...subjects, normalizedName];
+        ensureSubjectDailyTarget(normalizedName);
+        quickStudySubject = normalizeQuickSubject(quickStudySubject);
+        persistCurrentUserData();
+        renderAll();
+        return "";
+      }
+
+      function renameSubject(oldName, newName) {
+        const normalizedName = String(newName || "").trim();
+        if (!normalizedName) {
+          return "Subject name is required.";
+        }
+
+        if (!subjects.includes(oldName)) {
+          return "Subject not found.";
+        }
+
+        if (
+          subjects.some(
+            (subject) => subject !== oldName && subject.toLowerCase() === normalizedName.toLowerCase()
+          )
+        ) {
+          return "Another subject already uses this name.";
+        }
+
+        subjects = subjects.map((subject) => (subject === oldName ? normalizedName : subject));
+        if (subjectDailyTargets[oldName] && !subjectDailyTargets[normalizedName]) {
+          subjectDailyTargets[normalizedName] = subjectDailyTargets[oldName];
+        }
+        delete subjectDailyTargets[oldName];
+
+        studySessions = studySessions.map((session) =>
+          session.subject === oldName ? { ...session, subject: normalizedName } : session
+        );
+
+        if (quickStudySubject === oldName) {
+          quickStudySubject = normalizedName;
+        }
+
+        persistCurrentUserData();
+        renderAll();
+        return "";
+      }
+
+      function removeSubject(subjectName) {
+        if (subjects.length <= 1) {
+          return "You need at least one subject.";
+        }
+
+        if (!subjects.includes(subjectName)) {
+          return "Subject not found.";
+        }
+
+        const replacement = subjects.find((subject) => subject !== subjectName) || "General";
+        subjects = subjects.filter((subject) => subject !== subjectName);
+
+        studySessions = studySessions.map((session) =>
+          session.subject === subjectName ? { ...session, subject: replacement } : session
+        );
+
+        if (quickStudySubject === subjectName) {
+          quickStudySubject = replacement;
+        }
+
+        delete subjectDailyTargets[subjectName];
+        persistCurrentUserData();
+        renderAll();
+        return "";
+      }
+
+      function normalizeWorkMode(modeValue) {
+        return modeValue === "tomato" || modeValue === "focus_clock"
+          ? modeValue
+          : "focus_clock";
+      }
+
+      function timerModeLabel(modeValue) {
+        const normalizedMode = normalizeWorkMode(modeValue);
+        const option = Array.from(timerModeSelect.options).find((item) => item.value === normalizedMode);
+        return option ? option.textContent.trim() : "Focus Clock (Count up)";
+      }
+
+      function latestStudySession() {
+        if (studySessions.length === 0) {
+          return null;
+        }
+
+        return studySessions
+          .map((session, index) => ({ session, index }))
+          .sort((a, b) => {
+            const byDate = parseDateKey(b.session.date) - parseDateKey(a.session.date);
+            if (byDate !== 0) {
+              return byDate;
+            }
+            return b.index - a.index;
+          })[0].session;
+      }
+
+      function resolveInitialQuickStudyPreset() {
+        const latestSession = latestStudySession();
+        if (!latestSession) {
+          return {
+            subject: latestCreatedSubjectValue(),
+            workMode: "focus_clock",
+          };
+        }
+
+        return {
+          subject: normalizeQuickSubject(latestSession.subject || latestCreatedSubjectValue()),
+          workMode: normalizeWorkMode(latestSession.workMode),
+        };
+      }
+
+      function syncQuickStudySettingsUi() {
+        const subjectValues = timerSubjectValues();
+
+        quickStudySubject = normalizeQuickSubject(quickStudySubject);
+        quickStudyWorkMode = normalizeWorkMode(quickStudyWorkMode);
+
+        onboardingQuickSubjectText.textContent = quickStudySubject;
+        onboardingQuickWorkModeText.textContent = timerModeLabel(quickStudyWorkMode);
+
+        if (subjectValues.length > 0) {
+          quickSubjectSelect.value = quickStudySubject;
+          timerSubjectSelect.value = normalizeQuickSubject(timerSubjectSelect.value);
+        }
+        quickWorkModeSelect.value = quickStudyWorkMode;
+      }
+
+      function goalTitleById(goalId) {
+        const goal = goals.find((item) => item.id === goalId);
+        return goal ? goal.title : "Unknown goal";
+      }
+
+      function sortedSessionsDesc(nextSessions) {
+        return nextSessions
+          .slice()
+          .sort((a, b) => {
+            const byDate = parseDateKey(b.date) - parseDateKey(a.date);
+            if (byDate !== 0) {
+              return byDate;
+            }
+            return String(b.id).localeCompare(String(a.id));
+          });
+      }
+
+      function filteredHistorySessions() {
+        const searchText = String(historySearchInput.value || "").trim().toLowerCase();
+        const fromDate = historyFromDateInput.value;
+        const toDate = historyToDateInput.value;
+        const selectedSubject = historySubjectFilter.value;
+
+        return sortedSessionsDesc(studySessions).filter((session) => {
+          if (selectedSubject && selectedSubject !== "all" && session.subject !== selectedSubject) {
+            return false;
+          }
+          if (fromDate && session.date < fromDate) {
+            return false;
+          }
+          if (toDate && session.date > toDate) {
+            return false;
+          }
+          if (!searchText) {
+            return true;
+          }
+          const haystack = (session.title + " " + session.subject + " " + session.note).toLowerCase();
+          return haystack.includes(searchText);
+        });
+      }
+
+      function renderHistoryTable() {
+        const items = filteredHistorySessions();
+
+        if (items.length === 0) {
+          historyTableBody.innerHTML =
+            '<tr><td colspan="6" class="muted" style="text-align:center">No sessions match current filters.</td></tr>';
+          return;
+        }
+
+        historyTableBody.innerHTML = items
+          .map((session) => {
+            return (
+              '<tr>' +
+                '<td>' + escapeHtml(session.date) + '</td>' +
+                '<td>' + escapeHtml(goalTitleById(session.goalId)) + '</td>' +
+                '<td>' + escapeHtml(session.subject) + '</td>' +
+                '<td>' + escapeHtml(session.title) + '</td>' +
+                '<td>' + escapeHtml(formatMinutesCompact(session.durationMinutes)) + '</td>' +
+                '<td>' +
+                  '<div class="btn-row">' +
+                    '<button class="btn secondary" data-action="edit-session" data-session-id="' + escapeHtml(session.id) + '">Edit</button>' +
+                    '<button class="btn danger" data-action="delete-session" data-session-id="' + escapeHtml(session.id) + '">Delete</button>' +
+                  '</div>' +
+                '</td>' +
+              '</tr>'
+            );
+          })
+          .join("");
+      }
+
+      function dashboardSelectedGoalId() {
+        if (dashboardGoalFilter.value === "active") {
+          const activeGoal = getActiveGoal();
+          return activeGoal ? activeGoal.id : "";
+        }
+        return dashboardGoalFilter.value;
+      }
+
+      function dashboardDateRangeKeys(rangeValue) {
+        const today = dateKey(new Date());
+        if (rangeValue === "this-month") {
+          const now = new Date();
+          const start = new Date(now.getFullYear(), now.getMonth(), 1);
+          const days = [];
+          for (let date = new Date(start); date <= now; date.setDate(date.getDate() + 1)) {
+            days.push(dateKey(new Date(date)));
+          }
+          return days;
+        }
+
+        if (rangeValue === "last-3-months") {
+          return lastDays(today, 90);
+        }
+
+        return lastDays(today, 7);
+      }
+
+      function renderDashboardView() {
+        const goalId = dashboardSelectedGoalId();
+        const subjectFilter = dashboardSubjectFilter.value;
+        const rangeKeys = dashboardDateRangeKeys(dashboardRangeFilter.value);
+
+        let filtered = goalId ? sessionsForGoal(goalId) : [];
+        if (subjectFilter && subjectFilter !== "all") {
+          filtered = filtered.filter((session) => session.subject === subjectFilter);
+        }
+
+        const rangeSet = new Set(rangeKeys);
+        const inRangeSessions = filtered.filter((session) => rangeSet.has(session.date));
+
+        const sevenDayKeys = lastDays(dateKey(new Date()), 7);
+        const sevenDaySet = new Set(sevenDayKeys);
+        const sevenDaySessions = filtered.filter((session) => sevenDaySet.has(session.date));
+        const sevenDayTotal = sevenDaySessions.reduce((sum, session) => sum + session.durationMinutes, 0);
+
+        const todayKey = dateKey(new Date());
+        const todayMinutes = filtered
+          .filter((session) => session.date === todayKey)
+          .reduce((sum, session) => sum + session.durationMinutes, 0);
+
+        const dailyTarget = goalId ? currentGoalDailyTargetMinutes(goalId) : 0;
+        const progressPercent =
+          dailyTarget > 0 ? Math.min(100, Math.round((todayMinutes / dailyTarget) * 100)) : 0;
+
+        dashboardTodayProgress.textContent =
+          dailyTarget > 0
+            ? todayMinutes + " / " + dailyTarget + " min"
+            : todayMinutes + " min";
+        dashboardTodayProgressBar.style.width = progressPercent + "%";
+        dashboardSevenDayTotal.textContent = formatMinutes(sevenDayTotal);
+        dashboardWeekSessions.textContent = String(inRangeSessions.length);
+
+        const dailyTotals = {};
+        sevenDayKeys.forEach((day) => {
+          dailyTotals[day] = 0;
+        });
+        sevenDaySessions.forEach((session) => {
+          dailyTotals[session.date] = (dailyTotals[session.date] || 0) + session.durationMinutes;
+        });
+
+        const maxMinutes = Math.max(...Object.values(dailyTotals), 1);
+        dashboardTrendBars.innerHTML = sevenDayKeys
+          .map((day) => {
+            const total = dailyTotals[day] || 0;
+            const height = total > 0 ? Math.max(8, Math.round((total / maxMinutes) * 100)) : 6;
+            return '<i style="height:' + height + '%" title="' + escapeHtml(shortDayDateLabel(day) + ": " + total + " min") + '"></i>';
+          })
+          .join("");
+      }
+
+      function applySidebarState() {
+        const isAuthScreen = !isLoggedIn;
+        const shouldHideSidebar = isAuthScreen || isSidebarHidden;
+
+        appShell.classList.toggle("auth-screen", isAuthScreen);
+        appShell.classList.toggle("sidebar-hidden", shouldHideSidebar);
+
+        sidebarToggleButton.disabled = isAuthScreen;
+
+        const icon = sidebarToggleButton.querySelector('span[aria-hidden="true"]');
+        const label = sidebarToggleButton.querySelector("span:not([aria-hidden])");
+
+        if (isAuthScreen) {
+          if (icon) {
+            icon.textContent = "☰";
+          }
+          if (label) {
+            label.textContent = "Sidebar hidden on login";
+          }
+          return;
+        }
+
+        if (icon) {
+          icon.textContent = isSidebarHidden ? "☰" : "✕";
+        }
+        if (label) {
+          label.textContent = isSidebarHidden ? "Show sidebar" : "Hide sidebar";
+        }
+      }
+
+      function openModal(modalElement) {
+        modalElement.classList.remove("is-hidden");
+      }
+
+      function closeModal(modalElement) {
+        modalElement.classList.add("is-hidden");
+      }
+
+      function initializeQuickStudyDefaults() {
+        renderSubjectSelectors();
+        const preset = resolveInitialQuickStudyPreset();
+        quickStudySubject = preset.subject;
+        quickStudyWorkMode = preset.workMode;
+
+        timerSubjectSelect.value = quickStudySubject;
+        timerModeSelect.value = quickStudyWorkMode;
+        quickStartWorkMode = quickStudyWorkMode;
+
+        syncQuickStudySettingsUi();
+      }
+
+      function todayWeekdayNumber() {
+        const day = new Date().getDay();
+        return day === 0 ? 7 : day;
+      }
+
+      function currentGoalDailyTargetMinutes(goalId) {
+        const targets = weeklyTargetsByGoal[goalId] || defaultWeeklyTargets();
+        return Math.max(0, Number(targets[todayWeekdayNumber()] || 0));
+      }
+
+      function defaultWeeklyTargets() {
+        return { 1: 120, 2: 120, 3: 90, 4: 120, 5: 90, 6: 60, 7: 0 };
+      }
+
+      function getActiveGoal() {
+        return goals.find((goal) => goal.isActive) || goals[0] || null;
+      }
+
+      function sessionsForGoal(goalId) {
+        return studySessions.filter((session) => session.goalId === goalId);
+      }
+
+      function getReferenceDateKey(goalId) {
+        const sessions = sessionsForGoal(goalId);
+        if (sessions.length === 0) {
+          return dateKey(new Date());
+        }
+        return sessions
+          .map((session) => session.date)
+          .sort((a, b) => parseDateKey(a) - parseDateKey(b))
+          .at(-1);
+      }
+
+      function lastDays(dateValue, days) {
+        const end = parseDateKey(dateValue);
+        const results = [];
+        for (let index = days - 1; index >= 0; index -= 1) {
+          const next = new Date(end);
+          next.setDate(end.getDate() - index);
+          results.push(dateKey(next));
+        }
+        return results;
+      }
+
+      function groupDailyTotals(goalId) {
+        const map = {};
+        sessionsForGoal(goalId).forEach((session) => {
+          map[session.date] = (map[session.date] || 0) + session.durationMinutes;
+        });
+        return map;
+      }
+
+      function groupDailyTotalsBySubject(goalId, subject) {
+        const map = {};
+        sessionsForGoal(goalId)
+          .filter((session) => session.subject === subject)
+          .forEach((session) => {
+            map[session.date] = (map[session.date] || 0) + session.durationMinutes;
+          });
+        return map;
+      }
+
+      function getAchievedDateKeysForGoal(goalId) {
+        const targetMap = weeklyTargetsByGoal[goalId] || defaultWeeklyTargets();
+        const daily = groupDailyTotals(goalId);
+        return Object.keys(daily)
+          .filter((dayKey) => {
+            const target = targetMap[weekdayNumber(dayKey)] || 0;
+            return target > 0 && daily[dayKey] >= target;
+          })
+          .sort((a, b) => parseDateKey(a) - parseDateKey(b));
+      }
+
+      function calculateLongestStreak(dateKeys) {
+        if (dateKeys.length === 0) {
+          return 0;
+        }
+        const sorted = Array.from(new Set(dateKeys)).sort((a, b) => parseDateKey(a) - parseDateKey(b));
+        let longest = 1;
+        let current = 1;
+        for (let index = 1; index < sorted.length; index += 1) {
+          const prev = parseDateKey(sorted[index - 1]);
+          const next = parseDateKey(sorted[index]);
+          const diff = Math.round((next - prev) / 86400000);
+          if (diff === 1) {
+            current += 1;
+            longest = Math.max(longest, current);
+          } else {
+            current = 1;
+          }
+        }
+        return longest;
+      }
+
+      function calculateCurrentStreak(dateKeys) {
+        if (dateKeys.length === 0) {
+          return 0;
+        }
+        const sorted = Array.from(new Set(dateKeys)).sort((a, b) => parseDateKey(a) - parseDateKey(b));
+        let streak = 1;
+        for (let index = sorted.length - 1; index > 0; index -= 1) {
+          const current = parseDateKey(sorted[index]);
+          const prev = parseDateKey(sorted[index - 1]);
+          const diff = Math.round((current - prev) / 86400000);
+          if (diff === 1) {
+            streak += 1;
+          } else {
+            break;
+          }
+        }
+        return streak;
+      }
+
+      function goalWeeklySummary(goalId) {
+        const endKey = getReferenceDateKey(goalId);
+        const keys = lastDays(endKey, 7);
+        const sessions = sessionsForGoal(goalId).filter((session) => keys.includes(session.date));
+        const totalMinutes = sessions.reduce((sum, session) => sum + session.durationMinutes, 0);
+        const averageMinutes = sessions.length > 0 ? Math.round(totalMinutes / sessions.length) : 0;
+        return {
+          endKey,
+          rangeKeys: keys,
+          totalMinutes,
+          sessionCount: sessions.length,
+          averageMinutes,
+          recentSessions: sessions
+            .slice()
+            .sort((a, b) => parseDateKey(b.date) - parseDateKey(a.date))
+            .slice(0, 5),
+        };
+      }
+
+      function setActiveView(viewId, options = {}) {
+        const force = Boolean(options.force);
+        if (!force && !isLoggedIn && viewId !== "login") {
+          setActiveView("login", { force: true });
+          showStatus(loginStatus, "Please login to access this screen.", true);
+          return;
+        }
+
+        navButtons.forEach((btn) => {
+          const isSelected = btn.dataset.view === viewId;
+          btn.classList.toggle("active", isSelected);
+        });
+
+        views.forEach((view) => {
+          view.classList.toggle("active", view.id === viewId);
+        });
+      }
+
+      function setGoals(nextGoals) {
+        goals = nextGoals;
+        persistCurrentUserData();
+        renderAll();
+      }
+
+      function validateGoalInput(goalInput) {
+        if (!goalInput.title.trim()) {
+          return "Goal title is required.";
+        }
+        if (!goalInput.type.trim()) {
+          return "Goal type is required.";
+        }
+        if (goalInput.startDate && goalInput.endDate && goalInput.startDate > goalInput.endDate) {
+          return "End date must be after start date.";
+        }
+        return null;
+      }
+
+      function addGoal(goalInput, options = {}) {
+        const makeActive = Boolean(options.makeActive);
+        const activeGoal = getActiveGoal();
+        const copiedTargets = {
+          ...((activeGoal && weeklyTargetsByGoal[activeGoal.id]) || defaultWeeklyTargets()),
+        };
+        const newGoal = {
+          id: createGoalId(),
+          title: goalInput.title.trim(),
+          type: goalInput.type.trim(),
+          startDate: goalInput.startDate,
+          endDate: goalInput.endDate,
+          isActive: false,
+        };
+
+        const shouldActivate = makeActive || goals.length === 0;
+        const normalized = shouldActivate
+          ? goals.map((goal) => ({ ...goal, isActive: false }))
+          : goals.slice();
+
+        newGoal.isActive = shouldActivate;
+        weeklyTargetsByGoal[newGoal.id] = copiedTargets;
+        setGoals([...normalized, newGoal]);
+        return newGoal;
+      }
+
+      function setActiveGoal(goalId) {
+        const updated = goals.map((goal) => ({
+          ...goal,
+          isActive: goal.id === goalId,
+        }));
+        setGoals(updated);
+      }
+
+      function removeGoal(goalId) {
+        delete weeklyTargetsByGoal[goalId];
+        studySessions = studySessions.filter((session) => session.goalId !== goalId);
+        if (selectedGoalDetailId === goalId) {
+          selectedGoalDetailId = null;
+        }
+
+        const filtered = goals.filter((goal) => goal.id !== goalId);
+        const hasActive = filtered.some((goal) => goal.isActive);
+        if (!hasActive && filtered.length > 0) {
+          filtered[0] = { ...filtered[0], isActive: true };
+        }
+        setGoals(filtered);
+        return true;
+      }
+
+      function renderGoalChips() {
+        const activeGoal = getActiveGoal();
+        if (!activeGoal) {
+          activeGoalChip.textContent = "Goal: none";
+          goalCountChip.textContent = "Total goals: 0";
+          return;
+        }
+        activeGoalChip.textContent = "Goal: " + activeGoal.title;
+        goalCountChip.textContent = "Total goals: " + goals.length;
+      }
+
+      function renderGoalList() {
+        if (goals.length === 0) {
+          goalList.innerHTML = '<p class="muted">No goals yet.</p>';
+          return;
+        }
+
+        goalList.innerHTML = goals
+          .map((goal) => {
+            const isDetailOpen = selectedGoalDetailId === goal.id;
+            const period = goal.startDate && goal.endDate
+              ? goal.startDate + " -> " + goal.endDate
+              : "No date range";
+            return (
+              '<article class="goal-item ' + (goal.isActive ? "active " : "") + (isDetailOpen ? "detail-open" : "") + '">' +
+                '<div>' +
+                  '<p class="goal-title">' + escapeHtml(goal.title) + '</p>' +
+                  '<p class="goal-meta">Type: ' + escapeHtml(goal.type) + " | " + escapeHtml(period) + '</p>' +
+                '</div>' +
+                '<div class="btn-row">' +
+                  '<button class="btn primary" data-action="open-detail" data-goal-id="' + goal.id + '">Detail</button>' +
+                  (goal.isActive
+                    ? '<span class="goal-chip">Active</span>'
+                    : '<button class="btn secondary" data-action="set-active" data-goal-id="' + goal.id + '">Set active</button>') +
+                  '<button class="btn danger" data-action="delete-goal" data-goal-id="' + goal.id + '">Delete</button>' +
+                '</div>' +
+              '</article>'
+            );
+          })
+          .join("");
+      }
+
+      function renderGoalSelectors() {
+        const activeGoal = getActiveGoal();
+        const currentDashboard = dashboardGoalFilter.value || "active";
+
+        if (!activeGoal) {
+          dashboardGoalFilter.innerHTML = '<option value="active">No goal</option>';
+          dashboardGoalFilter.value = "active";
+          selectedGoalDetailId = null;
+          return;
+        }
+
+        const options = goals
+          .map((goal) => '<option value="' + goal.id + '">' + escapeHtml(goal.title) + " (" + escapeHtml(goal.type) + ")</option>")
+          .join("");
+
+        dashboardGoalFilter.innerHTML =
+          '<option value="active">Active goal</option>' + options;
+        dashboardGoalFilter.value =
+          currentDashboard === "active" || goals.some((goal) => goal.id === currentDashboard)
+            ? currentDashboard
+            : "active";
+      }
+
+      function renderGoalDetailPanel() {
+        const detailGoal = goals.find((goal) => goal.id === selectedGoalDetailId) || null;
+        if (!detailGoal) {
+          goalDetailPanel.classList.add("is-hidden");
+          goalDetailTitle.textContent = "Goal detail";
+          goalDetailMeta.textContent = "";
+          goalDetailSetActiveButton.textContent = "Set as active goal";
+          goalDetailSetActiveButton.disabled = true;
+          return;
+        }
+
+        const period = detailGoal.startDate && detailGoal.endDate
+          ? detailGoal.startDate + " -> " + detailGoal.endDate
+          : "No date range";
+
+        goalDetailPanel.classList.remove("is-hidden");
+        goalDetailTitle.textContent = "Goal detail: " + detailGoal.title;
+        goalDetailMeta.textContent = "Type: " + detailGoal.type + " | " + period;
+        goalDetailSetActiveButton.textContent = detailGoal.isActive
+          ? "Active goal"
+          : "Set as active goal";
+        goalDetailSetActiveButton.disabled = detailGoal.isActive;
+        renderWeeklyTargetForm(detailGoal.id);
+      }
+
+      function renderDashboardFilterSummary() {
+        const rangeLabels = {
+          "this-week": "This week",
+          "this-month": "This month",
+          "last-3-months": "Last 3 months",
+        };
+
+        const selectedRange = rangeLabels[dashboardRangeFilter.value] || "This week";
+        const selectedSubject =
+          dashboardSubjectFilter.value === "all"
+            ? "All subjects"
+            : dashboardSubjectFilter.value;
+        let selectedGoal = "Active goal";
+
+        if (dashboardGoalFilter.value === "active") {
+          const activeGoal = getActiveGoal();
+          selectedGoal = activeGoal ? activeGoal.title : "No goal";
+        } else {
+          const found = goals.find((goal) => goal.id === dashboardGoalFilter.value);
+          selectedGoal = found ? found.title : "No goal";
+        }
+
+        dashboardFilterSummary.textContent =
+          "Showing " + selectedRange + " | " + selectedSubject + " | " + selectedGoal;
+      }
+
+      function renderOnboardingWeekChart(goalId, rangeKeys) {
+        if (!goalId || rangeKeys.length === 0) {
+          onboardingWeekChart.innerHTML = '<p class="muted" style="grid-column: 1 / -1">No study data yet.</p>';
+          return;
+        }
+
+        const targets = weeklyTargetsByGoal[goalId] || defaultWeeklyTargets();
+        const dailyTotals = groupDailyTotals(goalId);
+        const maxMinutes = Math.max(
+          ...rangeKeys.map((dayKey) => {
+            const total = dailyTotals[dayKey] || 0;
+            const target = targets[weekdayNumber(dayKey)] || 0;
+            return Math.max(total, target);
+          }),
+          1
+        );
+
+        onboardingWeekChart.innerHTML = rangeKeys
+          .map((dayKey) => {
+            const totalMinutes = dailyTotals[dayKey] || 0;
+            const targetMinutes = targets[weekdayNumber(dayKey)] || 0;
+            const achieved = targetMinutes > 0 && totalMinutes >= targetMinutes;
+            const percentHeight = totalMinutes > 0
+              ? Math.max(8, Math.round((totalMinutes / maxMinutes) * 100))
+              : 6;
+            const tooltip = achieved
+              ? shortDayDateLabel(dayKey) + ": reached " + formatMinutesCompact(totalMinutes) + " / " + formatMinutesCompact(targetMinutes)
+              : shortDayDateLabel(dayKey) + ": " + formatMinutesCompact(totalMinutes) + " / target " + formatMinutesCompact(targetMinutes);
+
+            return (
+              '<article class="onboarding-day-column">' +
+                '<span class="onboarding-day-value">' + formatMinutesCompact(totalMinutes) + '</span>' +
+                '<div class="onboarding-day-bar-shell">' +
+                  '<i class="onboarding-day-bar ' + (achieved ? "achieved" : "") + '" style="height:' + percentHeight + '%" title="' + escapeHtml(tooltip) + '"></i>' +
+                '</div>' +
+                '<span class="onboarding-day-label">' + shortDayDateLabel(dayKey) + '</span>' +
+              '</article>'
+            );
+          })
+          .join("");
+      }
+
+      function renderOnboardingGoalEntryState() {
+        const hasGoals = goals.length > 0;
+        onboardingQuickStartPanel.classList.toggle("is-hidden", !hasGoals);
+        onboardingCreateGoalPanel.classList.toggle("is-hidden", hasGoals);
+
+        onboardingStartStudy.disabled = !isLoggedIn || !hasGoals;
+        onboardingEditSubjectButton.disabled = !isLoggedIn || !hasGoals;
+        onboardingEditWorkModeButton.disabled = !isLoggedIn || !hasGoals;
+        onboardingCreateGoalButton.disabled = !isLoggedIn;
+        syncQuickStudySettingsUi();
+      }
+
+      function renderOnboardingSummary(goalId) {
+        const activeGoal = goals.find((goal) => goal.id === goalId) || getActiveGoal();
+        if (!activeGoal) {
+          onboardingGoalMeta.textContent = "No goal selected.";
+          onboardingWeekTotalTime.textContent = "0h 0m";
+          onboardingWeekSessions.textContent = "0";
+          onboardingWeekAverage.textContent = "0m";
+          onboardingWeekTotal.textContent = "Create your first goal to see weekly summary.";
+          onboardingWeekChart.innerHTML = '<p class="muted" style="grid-column: 1 / -1">Create a goal to view the 7-day chart.</p>';
+          onboardingRecentList.innerHTML = '<p class="muted">No recent sessions yet.</p>';
+          return;
+        }
+
+        const summary = goalWeeklySummary(activeGoal.id);
+        const achievedDays = getAchievedDateKeysForGoal(activeGoal.id).filter((day) => summary.rangeKeys.includes(day)).length;
+
+        onboardingGoalMeta.textContent =
+          "Type: " + activeGoal.type + " | " + activeGoal.startDate + " -> " + activeGoal.endDate;
+        onboardingWeekTotalTime.textContent = formatMinutes(summary.totalMinutes);
+        onboardingWeekSessions.textContent = String(summary.sessionCount);
+        onboardingWeekAverage.textContent = formatMinutesCompact(summary.averageMinutes);
+        onboardingWeekTotal.textContent =
+          "Achieved days this week: " + achievedDays + " | Range: " + summary.rangeKeys[0] + " -> " + summary.rangeKeys.at(-1);
+        renderOnboardingWeekChart(activeGoal.id, summary.rangeKeys);
+
+        if (summary.recentSessions.length === 0) {
+          onboardingRecentList.innerHTML = '<p class="muted">No recent sessions for this goal.</p>';
+          return;
+        }
+
+        onboardingRecentList.innerHTML = summary.recentSessions
+          .map((session) => (
+            '<article class="recent-item">' +
+              '<div class="recent-head">' +
+                '<p><strong>' + escapeHtml(session.title) + '</strong></p>' +
+                '<span class="recent-duration">' + formatMinutesCompact(session.durationMinutes) + '</span>' +
+              '</div>' +
+              '<p class="meta">' + escapeHtml(session.subject) + " | " + session.date + '</p>' +
+            '</article>'
+          ))
+          .join("");
+      }
+
+      function renderWeeklyTargetForm(goalId) {
+        const targets = weeklyTargetsByGoal[goalId] || defaultWeeklyTargets();
+
+        weeklyTargetChecks.forEach((checkInput) => {
+          const weekday = Number(checkInput.dataset.weekday);
+          const target = targets[weekday] || 0;
+          checkInput.checked = target > 0;
+        });
+
+        weeklyTargetMinuteInputs.forEach((minuteInput) => {
+          const weekday = Number(minuteInput.dataset.weekday);
+          const target = targets[weekday] || 0;
+          minuteInput.value = String(target);
+        });
+
+        syncWeeklyTargetInputState();
+      }
+
+      function syncWeeklyTargetInputState() {
+        weeklyTargetChecks.forEach((checkInput) => {
+          const weekday = checkInput.dataset.weekday;
+          const targetInput = weeklyTargetMinuteInputs.find(
+            (item) => item.dataset.weekday === weekday
+          );
+          if (!targetInput) {
+            return;
+          }
+          targetInput.disabled = !checkInput.checked;
+          if (!checkInput.checked) {
+            targetInput.value = "0";
+          }
+        });
+      }
+
+      function collectWeeklyTargetsFromForm() {
+        const targets = {};
+        for (let day = 1; day <= 7; day += 1) {
+          const checkInput = weeklyTargetChecks.find((item) => Number(item.dataset.weekday) === day);
+          const minuteInput = weeklyTargetMinuteInputs.find((item) => Number(item.dataset.weekday) === day);
+          const minutes = Math.max(0, Number(minuteInput.value || 0));
+          targets[day] = checkInput.checked ? minutes : 0;
+        }
+        return targets;
+      }
+
+      function renderSubjectAchievementChart(goalId) {
+        const sessions = sessionsForGoal(goalId);
+        const subjects = Array.from(new Set(sessions.map((item) => item.subject)));
+        if (subjects.length === 0) {
+          subjectAchievementChart.innerHTML = '<p class="muted" style="padding: 10px">No subject data yet.</p>';
+          return;
+        }
+
+        const endKey = getReferenceDateKey(goalId);
+        const days = lastDays(endKey, 7);
+
+        const header =
+          '<div class="achievement-header">' +
+            '<div class="achievement-cell">Subject</div>' +
+            days.map((day) => '<div class="achievement-cell">' + shortDayLabel(day) + '</div>').join("") +
+          '</div>';
+
+        const rows = subjects
+          .map((subject) => {
+            const subjectTotals = groupDailyTotalsBySubject(goalId, subject);
+            const target = subjectDailyTargets[subject] || 60;
+
+            const cells = days
+              .map((day) => {
+                const total = subjectTotals[day] || 0;
+                let className = "none";
+                let title = "No study log";
+                if (total > 0) {
+                  className = total >= target ? "achieved" : "missed";
+                  title = total + "m / target " + target + "m";
+                }
+                return '<div class="achievement-cell"><div class="day-dot ' + className + '" title="' + title + '"></div></div>';
+              })
+              .join("");
+
+            return (
+              '<div class="achievement-row">' +
+                '<div class="achievement-subject">' + escapeHtml(subject) + '</div>' +
+                cells +
+              '</div>'
+            );
+          })
+          .join("");
+
+        subjectAchievementChart.innerHTML = header + rows;
+      }
+
+      function renderCompareList(container, rows) {
+        if (rows.length === 0) {
+          container.innerHTML = '<p class="muted">No streak data.</p>';
+          return;
+        }
+
+        const maxValue = Math.max(...rows.map((row) => row.value), 1);
+        container.innerHTML = rows
+          .map((row) => {
+            const width = Math.round((row.value / maxValue) * 100);
+            return (
+              '<article class="compare-item">' +
+                '<div class="compare-head">' +
+                  '<strong>' + escapeHtml(row.label) + '</strong>' +
+                  '<span>' + row.value + ' days</span>' +
+                '</div>' +
+                '<div class="compare-bar"><i style="width:' + width + '%"></i></div>' +
+              '</article>'
+            );
+          })
+          .join("");
+      }
+
+      function renderStreakAnalytics(goalId) {
+        const goalRows = goals
+          .map((goal) => {
+            const achievedDates = getAchievedDateKeysForGoal(goal.id);
+            return {
+              label: goal.title,
+              value: calculateLongestStreak(achievedDates),
+              current: calculateCurrentStreak(achievedDates),
+              isActive: goal.id === goalId,
+            };
+          })
+          .sort((a, b) => b.value - a.value);
+
+        const activeGoalRow = goalRows.find((row) => row.isActive);
+        const highestStreak = goalRows.length > 0 ? goalRows[0].value : 0;
+        statsHighestStreak.textContent = highestStreak + " days";
+        statsCurrentGoalStreak.textContent = (activeGoalRow ? activeGoalRow.current : 0) + " days";
+
+        const activeSubjects = Array.from(new Set(sessionsForGoal(goalId).map((item) => item.subject)));
+        const subjectRows = activeSubjects
+          .map((subject) => {
+            const totals = groupDailyTotalsBySubject(goalId, subject);
+            const target = subjectDailyTargets[subject] || 60;
+            const achievedDates = Object.keys(totals).filter((day) => totals[day] >= target);
+            return {
+              label: subject,
+              value: calculateLongestStreak(achievedDates),
+            };
+          })
+          .sort((a, b) => b.value - a.value);
+
+        renderCompareList(statsSubjectStreakList, subjectRows);
+        renderCompareList(
+          statsGoalStreakList,
+          goalRows.map((row) => ({ label: row.label + (row.isActive ? " (active)" : ""), value: row.value }))
+        );
+      }
+
+      function renderStatistics(goalId) {
+        const sessions = sessionsForGoal(goalId);
+        const activeGoal = goals.find((goal) => goal.id === goalId) || getActiveGoal();
+
+        if (!activeGoal) {
+          statsActiveGoalLabel.textContent = "Active goal: none";
+          statsTotalTime.textContent = "0h 0m";
+          statsAchievedDays.textContent = "0 days";
+          statsAverageTime.textContent = "0m";
+          subjectAchievementChart.innerHTML = '<p class="muted" style="padding: 10px">No subject data yet.</p>';
+          statsHighestStreak.textContent = "0 days";
+          statsCurrentGoalStreak.textContent = "0 days";
+          statsSubjectStreakList.innerHTML = '<p class="muted">No streak data.</p>';
+          statsGoalStreakList.innerHTML = '<p class="muted">No streak data.</p>';
+          return;
+        }
+
+        statsActiveGoalLabel.textContent = "Active goal: " + activeGoal.title + " (" + activeGoal.type + ")";
+
+        const totalMinutes = sessions.reduce((sum, session) => sum + session.durationMinutes, 0);
+        const dailyTotals = groupDailyTotals(goalId);
+        const activeDays = Object.keys(dailyTotals).length;
+        const average = activeDays > 0 ? Math.round(totalMinutes / activeDays) : 0;
+        const achievedDays = getAchievedDateKeysForGoal(goalId).length;
+
+        statsTotalTime.textContent = formatMinutes(totalMinutes);
+        statsAchievedDays.textContent = achievedDays + " days";
+        statsAverageTime.textContent = formatMinutesCompact(average);
+
+        renderSubjectAchievementChart(goalId);
+        renderStreakAnalytics(goalId);
+      }
+
+      function applyAuthState() {
+        renderSidebarAuthButton();
+        authStatus.textContent = isLoggedIn
+          ? "Signed in as " + (currentUser ? currentUser.email : "")
+          : "You are logged out. Login to continue.";
+        streakChip.textContent = isLoggedIn ? defaultStreakText : "Session closed";
+        applyUserProfileUi();
+        applySidebarState();
+
+        navButtons.forEach((button) => {
+          button.disabled = !isLoggedIn;
+        });
+        renderOnboardingGoalEntryState();
+
+        if (!isLoggedIn) {
+          stopTimerInterval();
+          timerSessionStartedAt = null;
+          isQuickStartSession = false;
+          quickStartTargetMinutes = 0;
+          quickStartInitialSeconds = 0;
+          applyQuickStartTimerUi();
+          setActiveView("login", { force: true });
+          showStatus(onboardingStatus, "");
+        } else {
+          showStatus(loginStatus, "");
+          showStatus(onboardingStatus, "");
+        }
+      }
+
+      function renderAll() {
+        const activeGoal = getActiveGoal();
+        renderSubjectSelectors();
+        renderGoalChips();
+        renderGoalList();
+        renderGoalSelectors();
+        renderGoalDetailPanel();
+        renderOnboardingGoalEntryState();
+        renderDashboardFilterSummary();
+        renderDashboardView();
+        renderOnboardingSummary(activeGoal ? activeGoal.id : "");
+        renderStatistics(activeGoal ? activeGoal.id : "");
+        renderHistoryTable();
+        renderSubjectList();
+      }
+
+      function clampTomatoMinutes(value) {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) {
+          return 25;
+        }
+        return Math.min(180, Math.max(1, Math.round(numeric)));
+      }
+
+      function currentTimerMode() {
+        return timerModeSelect.value;
+      }
+
+      function tomatoDurationSeconds() {
+        const minutes = clampTomatoMinutes(tomatoMinutesInput.value);
+        tomatoMinutesInput.value = String(minutes);
+        return minutes * 60;
+      }
+
+      function initialSecondsForMode(mode) {
+        if (mode === "focus_clock") {
+          return 0;
+        }
+        return tomatoDurationSeconds();
+      }
+
+      function renderTimer() {
+        const hours = String(Math.floor(timerSeconds / 3600)).padStart(2, "0");
+        const minutes = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, "0");
+        const seconds = String(timerSeconds % 60).padStart(2, "0");
+        timerDisplay.textContent = hours + ":" + minutes + ":" + seconds;
+      }
+
+      function syncTimerModeUi() {
+        const isTomato = currentTimerMode() === "tomato";
+        tomatoMinutesInput.disabled = !isTomato;
+        tomatoLengthField.style.opacity = isTomato ? "1" : "0.6";
+        timerModeHint.textContent = isTomato
+          ? "Tomato Sprint counts down from selected minutes."
+          : "Focus Clock starts at 00:00:00 and counts up until you stop.";
+      }
+
+      function resolveQuickStartTargetMinutes(goalId, workMode) {
+        const dailyTarget = currentGoalDailyTargetMinutes(goalId);
+        if (dailyTarget > 0) {
+          return dailyTarget;
+        }
+
+        if (normalizeWorkMode(workMode) === "tomato") {
+          return clampTomatoMinutes(tomatoMinutesInput.value);
+        }
+
+        return 25;
+      }
+
+      function quickStartElapsedSeconds() {
+        if (!isQuickStartSession) {
+          return 0;
+        }
+
+        if (quickStartWorkMode === "focus_clock") {
+          return timerSeconds;
+        }
+
+        return Math.max(0, quickStartInitialSeconds - timerSeconds);
+      }
+
+      function stopTimerInterval() {
+        if (!timerId) {
+          return;
+        }
+        window.clearInterval(timerId);
+        timerId = null;
+      }
+
+      function applyQuickStartTimerUi() {
+        timerPanel.classList.toggle("quick-start-running", isQuickStartSession);
+        timerDisplay.classList.toggle("quick-start-running", isQuickStartSession);
+        timerDisplay.classList.remove("quick-start-pending", "quick-start-achieved");
+
+        if (!isQuickStartSession) {
+          quickStartStatus.textContent = "";
+          return;
+        }
+
+        const elapsedSeconds = quickStartElapsedSeconds();
+        const targetSeconds = quickStartTargetMinutes * 60;
+        const achieved = targetSeconds === 0 || elapsedSeconds >= targetSeconds;
+
+        timerDisplay.classList.add(achieved ? "quick-start-achieved" : "quick-start-pending");
+        quickStartStatus.textContent = achieved
+          ? "Target reached: " + formatMinutesCompact(Math.floor(elapsedSeconds / 60)) + " / " + formatMinutesCompact(quickStartTargetMinutes)
+          : "Target in progress: " + formatMinutesCompact(Math.floor(elapsedSeconds / 60)) + " / " + formatMinutesCompact(quickStartTargetMinutes);
+      }
+
+      function startTimerTicking() {
+        if (timerId) {
+          return;
+        }
+
+        if (!timerSessionStartedAt) {
+          timerSessionStartedAt = new Date().toISOString();
+        }
+
+        const mode = currentTimerMode();
+        if (mode === "tomato" && timerSeconds <= 0) {
+          timerSeconds = initialSecondsForMode(mode);
+          renderTimer();
+        }
+
+        timerId = window.setInterval(() => {
+          if (mode === "focus_clock") {
+            timerSeconds += 1;
+            renderTimer();
+            applyQuickStartTimerUi();
+            return;
+          }
+
+          if (timerSeconds > 0) {
+            timerSeconds -= 1;
+            renderTimer();
+            applyQuickStartTimerUi();
+            return;
+          }
+
+          stopTimerInterval();
+          applyQuickStartTimerUi();
+        }, 1000);
+
+        applyQuickStartTimerUi();
+      }
+
+      function resetTimerForMode() {
+        timerSeconds = initialSecondsForMode(currentTimerMode());
+        renderTimer();
+        applyQuickStartTimerUi();
+      }
+
+      function appendStudySession(sessionInput) {
+        studySessions = [...studySessions, sessionInput];
+        persistCurrentUserData();
+        renderAll();
+      }
+
+      function updateStudySession(sessionId, updateFn) {
+        studySessions = studySessions.map((session) => {
+          if (session.id !== sessionId) {
+            return session;
+          }
+          return updateFn(session);
+        });
+        persistCurrentUserData();
+        renderAll();
+      }
+
+      function deleteStudySession(sessionId) {
+        studySessions = studySessions.filter((session) => session.id !== sessionId);
+        persistCurrentUserData();
+        renderAll();
+      }
+
+      function exportRowsToCsv(rows) {
+        const escapeCsvValue = (value) => {
+          const text = String(value == null ? "" : value);
+          if (text.includes(",") || text.includes('"') || text.includes("\n")) {
+            return '"' + text.replaceAll('"', '""') + '"';
+          }
+          return text;
+        };
+
+        return rows
+          .map((row) => row.map((cell) => escapeCsvValue(cell)).join(","))
+          .join("\n");
+      }
+
+      function downloadTextFile(filename, content, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const href = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = href;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(href);
+      }
+
+      function exportSessionsJson() {
+        const payload = {
+          exportedAt: new Date().toISOString(),
+          user: currentUser ? { id: currentUser.id, email: currentUser.email, name: currentUser.name } : null,
+          sessions: sortedSessionsDesc(studySessions),
+        };
+        const content = JSON.stringify(payload, null, 2);
+        downloadTextFile("learntime-sessions.json", content, "application/json");
+      }
+
+      function exportSessionsCsv() {
+        const header = [
+          "id",
+          "date",
+          "goal",
+          "subject",
+          "title",
+          "duration_minutes",
+          "work_mode",
+          "note",
+          "start_time",
+          "end_time",
+        ];
+        const rows = sortedSessionsDesc(studySessions).map((session) => [
+          session.id,
+          session.date,
+          goalTitleById(session.goalId),
+          session.subject,
+          session.title,
+          session.durationMinutes,
+          session.workMode,
+          session.note,
+          session.startTime,
+          session.endTime,
+        ]);
+        const content = exportRowsToCsv([header, ...rows]);
+        downloadTextFile("learntime-sessions.csv", content, "text/csv;charset=utf-8");
+      }
+
+      function addManualSession() {
+        const activeGoal = getActiveGoal();
+        if (!activeGoal) {
+          showStatus(historyStatus, "Create a goal first before adding sessions.", true);
+          return;
+        }
+
+        const title = window.prompt("Session title", "Manual study session");
+        if (title === null) {
+          return;
+        }
+
+        const subject = window.prompt("Subject", subjects[0] || "General");
+        if (subject === null) {
+          return;
+        }
+
+        const durationRaw = window.prompt("Duration (minutes)", "30");
+        if (durationRaw === null) {
+          return;
+        }
+
+        const dateRaw = window.prompt("Date (YYYY-MM-DD)", dateKey(new Date()));
+        if (dateRaw === null) {
+          return;
+        }
+
+        const durationMinutes = Math.max(1, Number(durationRaw || 0));
+        const normalizedDate = String(dateRaw || "").trim();
+        if (!normalizedDate || Number.isNaN(parseDateKey(normalizedDate).getTime())) {
+          showStatus(historyStatus, "Date format invalid. Use YYYY-MM-DD.", true);
+          return;
+        }
+
+        if (!subjects.includes(subject.trim())) {
+          addSubject(subject.trim());
+        }
+
+        appendStudySession({
+          id: createSessionId(),
+          userId: currentUser.id,
+          goalId: activeGoal.id,
+          subject: normalizeQuickSubject(subject.trim()),
+          title: String(title || "Manual study session").trim() || "Manual study session",
+          date: normalizedDate,
+          durationMinutes,
+          workMode: "focus_clock",
+          note: "Manual entry",
+          startTime: normalizedDate + "T00:00:00",
+          endTime: normalizedDate + "T00:00:00",
+        });
+
+        showStatus(historyStatus, "Manual session added.");
+      }
+
+      function buildUserProfile(email, preferredName, userId, avatarUrl = "") {
+        const displayName = formatDisplayName(preferredName || "", email);
+        return {
+          id: normalizedUserId(userId || email),
+          name: displayName,
+          email,
+          avatarUrl,
+        };
+      }
+
+      function completeLogin(userProfile) {
+        currentUser = userProfile;
+        isLoggedIn = true;
+        loginPasswordInput.value = "";
+
+        applyLoadedUserData(userProfile);
+        initializeQuickStudyDefaults();
+        renderAll();
+        applyAuthState();
+        setActiveView("onboarding", { force: true });
+      }
+
+      async function loginWithEmailPassword(email, password, nameValue) {
+        if (supabaseClient) {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) {
+            throw error;
+          }
+          const user = data.user;
+          const metadata = user && user.user_metadata ? user.user_metadata : {};
+          return buildUserProfile(
+            user ? user.email : email,
+            metadata.full_name || metadata.name || nameValue,
+            user ? user.id : email,
+            metadata.avatar_url || ""
+          );
+        }
+
+        return buildUserProfile(email, nameValue, email);
+      }
+
+      async function restoreSupabaseSessionIfAvailable() {
+        if (!supabaseClient) {
+          return null;
+        }
+
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error || !data.session || !data.session.user) {
+          return null;
+        }
+
+        const user = data.session.user;
+        const metadata = user.user_metadata || {};
+        return buildUserProfile(
+          user.email,
+          metadata.full_name || metadata.name || "",
+          user.id,
+          metadata.avatar_url || ""
+        );
+      }
+
+      navButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          setActiveView(button.dataset.view);
+        });
+      });
+
+      loginSubmitButton.addEventListener("click", async () => {
+        const email = loginEmailInput.value.trim();
+        const password = loginPasswordInput.value;
+
+        if (!email || !email.includes("@")) {
+          showStatus(loginStatus, "Please enter a valid email.", true);
+          loginEmailInput.focus();
+          return;
+        }
+
+        if (!password || password.length < 4) {
+          showStatus(loginStatus, "Please enter your password.", true);
+          loginPasswordInput.focus();
+          return;
+        }
+
+        try {
+          showStatus(loginStatus, "Signing in...");
+          const userProfile = await loginWithEmailPassword(email, password, loginNameInput.value);
+          completeLogin(userProfile);
+          showStatus(onboardingStatus, "Welcome back, " + userProfile.name + ".");
+          showStatus(loginStatus, "");
+        } catch (error) {
+          showStatus(loginStatus, String(error && error.message ? error.message : "Login failed."), true);
+        }
+      });
+
+      loginGoogleButton.addEventListener("click", async () => {
+        if (!supabaseClient) {
+          const email = loginEmailInput.value.trim() || "google.user@gmail.com";
+          const userProfile = buildUserProfile(email, loginNameInput.value || "Google Learner", email);
+          completeLogin(userProfile);
+          showStatus(onboardingStatus, "Google login success (demo mode). Welcome, " + userProfile.name + ".");
+          return;
+        }
+
+        try {
+          showStatus(loginStatus, "Redirecting to Google...");
+          const { error } = await supabaseClient.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+              redirectTo: window.location.href,
+            },
+          });
+          if (error) {
+            throw error;
+          }
+        } catch (error) {
+          showStatus(
+            loginStatus,
+            String(error && error.message ? error.message : "Google login failed."),
+            true
+          );
+        }
+      });
+
+      sidebarToggleButton.addEventListener("click", () => {
+        isSidebarHidden = !isSidebarHidden;
+        applySidebarState();
+      });
+
+      onboardingEditSubjectButton.addEventListener("click", () => {
+        syncQuickStudySettingsUi();
+        openModal(quickSubjectModal);
+        quickSubjectSelect.focus();
+      });
+
+      quickSubjectSaveButton.addEventListener("click", () => {
+        quickStudySubject = normalizeQuickSubject(quickSubjectSelect.value);
+        timerSubjectSelect.value = quickStudySubject;
+        syncQuickStudySettingsUi();
+        persistCurrentUserData();
+        closeModal(quickSubjectModal);
+      });
+
+      quickSubjectCancelButton.addEventListener("click", () => {
+        closeModal(quickSubjectModal);
+      });
+
+      quickSubjectModal.addEventListener("click", (event) => {
+        if (event.target === quickSubjectModal) {
+          closeModal(quickSubjectModal);
+        }
+      });
+
+      onboardingEditWorkModeButton.addEventListener("click", () => {
+        syncQuickStudySettingsUi();
+        openModal(quickWorkModeModal);
+        quickWorkModeSelect.focus();
+      });
+
+      quickWorkModeSaveButton.addEventListener("click", () => {
+        quickStudyWorkMode = normalizeWorkMode(quickWorkModeSelect.value);
+        timerModeSelect.value = quickStudyWorkMode;
+        quickStartWorkMode = quickStudyWorkMode;
+        syncTimerModeUi();
+        syncQuickStudySettingsUi();
+        persistCurrentUserData();
+        closeModal(quickWorkModeModal);
+        resetTimerForMode();
+      });
+
+      quickWorkModeCancelButton.addEventListener("click", () => {
+        closeModal(quickWorkModeModal);
+      });
+
+      quickWorkModeModal.addEventListener("click", (event) => {
+        if (event.target === quickWorkModeModal) {
+          closeModal(quickWorkModeModal);
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") {
+          return;
+        }
+        closeModal(quickSubjectModal);
+        closeModal(quickWorkModeModal);
+      });
+
+      onboardingStartStudy.addEventListener("click", () => {
+        if (!isLoggedIn) {
+          showStatus(onboardingStatus, "Please login to start a session.", true);
+          setActiveView("login", { force: true });
+          return;
+        }
+
+        const activeGoal = getActiveGoal();
+        if (!activeGoal) {
+          showStatus(onboardingStatus, "Create a goal first to start studying.", true);
+          return;
+        }
+
+        quickStudySubject = normalizeQuickSubject(quickStudySubject);
+        quickStudyWorkMode = normalizeWorkMode(quickStudyWorkMode);
+        timerSubjectSelect.value = quickStudySubject;
+        timerModeSelect.value = quickStudyWorkMode;
+        syncTimerModeUi();
+
+        isQuickStartSession = true;
+        quickStartWorkMode = quickStudyWorkMode;
+        quickStartTargetMinutes = resolveQuickStartTargetMinutes(activeGoal.id, quickStudyWorkMode);
+        stopTimerInterval();
+        resetTimerForMode();
+        quickStartInitialSeconds = timerSeconds;
+
+        setActiveView("timer");
+        startTimerTicking();
+
+        showStatus(
+          onboardingStatus,
+          "Quick Start running: " + quickStudySubject + " | " + timerModeLabel(quickStudyWorkMode)
+        );
+      });
+
+      dashboardStartStudyButton.addEventListener("click", () => {
+        if (!isLoggedIn) {
+          setActiveView("login", { force: true });
+          showStatus(loginStatus, "Please login to continue.", true);
+          return;
+        }
+        setActiveView("timer");
+      });
+
+      onboardingCreateGoalButton.addEventListener("click", () => {
+        const goalInput = {
+          title: onboardingCreateGoalTitle.value,
+          type: onboardingCreateGoalType.value,
+          startDate: onboardingCreateStartDate.value,
+          endDate: onboardingCreateEndDate.value,
+        };
+
+        const validationError = validateGoalInput(goalInput);
+        if (validationError) {
+          showStatus(onboardingCreateGoalStatus, validationError, true);
+          return;
+        }
+
+        const created = addGoal(goalInput, { makeActive: true });
+        selectedGoalDetailId = created.id;
+        showStatus(onboardingCreateGoalStatus, "Created goal: " + created.title);
+        showStatus(onboardingStatus, "Goal created. You can start Quick Study now.");
+        onboardingCreateGoalTitle.value = "";
+        onboardingCreateGoalType.value = "";
+        renderAll();
+      });
+
+      addGoalButton.addEventListener("click", () => {
+        const goalInput = {
+          title: settingsGoalTitle.value,
+          type: settingsGoalType.value,
+          startDate: settingsStartDate.value,
+          endDate: settingsEndDate.value,
+        };
+
+        const validationError = validateGoalInput(goalInput);
+        if (validationError) {
+          showStatus(settingsGoalStatus, validationError, true);
+          return;
+        }
+
+        const created = addGoal(goalInput);
+        selectedGoalDetailId = created.id;
+        showStatus(settingsGoalStatus, "Created goal: " + created.title);
+        settingsGoalTitle.value = "";
+        settingsGoalType.value = "";
+        renderAll();
+      });
+
+      addSubjectButton.addEventListener("click", () => {
+        const error = addSubject(subjectNameInput.value);
+        if (error) {
+          showStatus(subjectStatus, error, true);
+          return;
+        }
+        subjectNameInput.value = "";
+        showStatus(subjectStatus, "Subject created.");
+      });
+
+      subjectList.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-action]");
+        if (!button) {
+          return;
+        }
+
+        const action = button.dataset.action;
+        const subjectName = button.dataset.subject;
+        if (!subjectName) {
+          return;
+        }
+
+        if (action === "rename-subject") {
+          const nextName = window.prompt("Rename subject", subjectName);
+          if (nextName === null) {
+            return;
+          }
+          const error = renameSubject(subjectName, nextName);
+          if (error) {
+            showStatus(subjectStatus, error, true);
+            return;
+          }
+          showStatus(subjectStatus, "Subject renamed.");
+          return;
+        }
+
+        if (action === "delete-subject") {
+          const shouldDelete = window.confirm("Delete subject '" + subjectName + "'? Existing sessions will be reassigned.");
+          if (!shouldDelete) {
+            return;
+          }
+          const error = removeSubject(subjectName);
+          if (error) {
+            showStatus(subjectStatus, error, true);
+            return;
+          }
+          showStatus(subjectStatus, "Subject deleted.");
+        }
+      });
+
+      goalList.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-action]");
+        if (!button) {
+          return;
+        }
+
+        const action = button.dataset.action;
+        const goalId = button.dataset.goalId;
+
+        if (action === "open-detail") {
+          selectedGoalDetailId = goalId;
+          renderAll();
+          showStatus(settingsGoalStatus, "Opened detail for selected goal.");
+          return;
+        }
+
+        if (action === "set-active") {
+          setActiveGoal(goalId);
+          showStatus(settingsGoalStatus, "Active goal updated.");
+          return;
+        }
+
+        if (action === "delete-goal") {
+          removeGoal(goalId);
+          showStatus(settingsGoalStatus, "Goal deleted.");
+        }
+      });
+
+      goalDetailSetActiveButton.addEventListener("click", () => {
+        if (!selectedGoalDetailId) {
+          showStatus(settingsGoalStatus, "Choose a goal detail first.", true);
+          return;
+        }
+
+        setActiveGoal(selectedGoalDetailId);
+        showStatus(settingsGoalStatus, "Active goal updated from detail.");
+      });
+
+      goalDetailBackButton.addEventListener("click", () => {
+        selectedGoalDetailId = null;
+        renderAll();
+      });
+
+      weeklyTargetChecks.forEach((checkInput) => {
+        checkInput.addEventListener("change", syncWeeklyTargetInputState);
+      });
+
+      saveWeeklyTargetsButton.addEventListener("click", () => {
+        const selectedGoalId = selectedGoalDetailId;
+        if (!selectedGoalId) {
+          showStatus(weeklyTargetStatus, "Open goal detail first, then save weekly targets.", true);
+          return;
+        }
+
+        weeklyTargetsByGoal = {
+          ...weeklyTargetsByGoal,
+          [selectedGoalId]: collectWeeklyTargetsFromForm(),
+        };
+        persistCurrentUserData();
+        const goal = goals.find((item) => item.id === selectedGoalId);
+        showStatus(weeklyTargetStatus, "Weekly targets saved for " + (goal ? goal.title : "selected goal") + ".");
+        renderAll();
+      });
+
+      [dashboardGoalFilter, dashboardRangeFilter, dashboardSubjectFilter].forEach((filterElement) => {
+        filterElement.addEventListener("change", () => {
+          renderDashboardFilterSummary();
+          renderDashboardView();
+        });
+      });
+
+      [historySearchInput, historyFromDateInput, historyToDateInput, historySubjectFilter].forEach((element) => {
+        element.addEventListener("input", renderHistoryTable);
+        element.addEventListener("change", renderHistoryTable);
+      });
+
+      historyAddManualButton.addEventListener("click", () => {
+        if (!isLoggedIn) {
+          showStatus(historyStatus, "Please login first.", true);
+          return;
+        }
+        addManualSession();
+      });
+
+      historyExportJsonButton.addEventListener("click", () => {
+        if (!isLoggedIn) {
+          showStatus(historyStatus, "Please login first.", true);
+          return;
+        }
+        exportSessionsJson();
+        showStatus(historyStatus, "JSON exported.");
+      });
+
+      historyExportCsvButton.addEventListener("click", () => {
+        if (!isLoggedIn) {
+          showStatus(historyStatus, "Please login first.", true);
+          return;
+        }
+        exportSessionsCsv();
+        showStatus(historyStatus, "CSV exported.");
+      });
+
+      historyTableBody.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-action]");
+        if (!button) {
+          return;
+        }
+
+        const action = button.dataset.action;
+        const sessionId = button.dataset.sessionId;
+        const target = studySessions.find((session) => session.id === sessionId);
+        if (!target) {
+          return;
+        }
+
+        if (action === "delete-session") {
+          const shouldDelete = window.confirm("Delete this study session?");
+          if (!shouldDelete) {
+            return;
+          }
+          deleteStudySession(sessionId);
+          showStatus(historyStatus, "Session deleted.");
+          return;
+        }
+
+        if (action === "edit-session") {
+          const nextTitle = window.prompt("Session title", target.title);
+          if (nextTitle === null) {
+            return;
+          }
+          const nextDurationRaw = window.prompt("Duration minutes", String(target.durationMinutes));
+          if (nextDurationRaw === null) {
+            return;
+          }
+          const nextDate = window.prompt("Date (YYYY-MM-DD)", target.date);
+          if (nextDate === null) {
+            return;
+          }
+          const nextNote = window.prompt("Note", target.note || "");
+          if (nextNote === null) {
+            return;
+          }
+
+          const nextDuration = Math.max(1, Number(nextDurationRaw || 0));
+          if (Number.isNaN(nextDuration)) {
+            showStatus(historyStatus, "Duration is invalid.", true);
+            return;
+          }
+          if (Number.isNaN(parseDateKey(nextDate).getTime())) {
+            showStatus(historyStatus, "Date format invalid.", true);
+            return;
+          }
+
+          updateStudySession(sessionId, (current) => ({
+            ...current,
+            title: String(nextTitle || "").trim() || current.title,
+            durationMinutes: nextDuration,
+            date: nextDate,
+            note: String(nextNote || ""),
+          }));
+          showStatus(historyStatus, "Session updated.");
+        }
+      });
+
+      sidebarLogoutButton.addEventListener("click", async () => {
+        if (!isLoggedIn) {
+          setActiveView("login", { force: true });
+          loginEmailInput.focus();
+          return;
+        }
+
+        if (supabaseClient) {
+          const { error } = await supabaseClient.auth.signOut();
+          if (error) {
+            showStatus(loginStatus, String(error.message || "Sign out failed."), true);
+          }
+        }
+
+        isLoggedIn = false;
+        currentUser = null;
+        timerSessionStartedAt = null;
+        applyAuthState();
+      });
+
+      startButton.addEventListener("click", () => {
+        if (!isLoggedIn) {
+          showStatus(onboardingStatus, "Please login to run timer.", true);
+          setActiveView("login", { force: true });
+          return;
+        }
+
+        if (!getActiveGoal()) {
+          showStatus(onboardingStatus, "Create an active goal before starting timer.", true);
+          return;
+        }
+
+        startTimerTicking();
+      });
+
+      pauseButton.addEventListener("click", () => {
+        stopTimerInterval();
+        applyQuickStartTimerUi();
+      });
+
+      stopButton.addEventListener("click", () => {
+        const modeBeforeStop = normalizeWorkMode(timerModeSelect.value);
+        const elapsedSeconds = modeBeforeStop === "focus_clock"
+          ? timerSeconds
+          : Math.max(0, tomatoDurationSeconds() - timerSeconds);
+        const hasStudyProgress = elapsedSeconds > 0;
+        const durationMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
+
+        stopTimerInterval();
+
+        if (hasStudyProgress) {
+          quickStudySubject = normalizeQuickSubject(timerSubjectSelect.value);
+          quickStudyWorkMode = modeBeforeStop;
+          syncQuickStudySettingsUi();
+
+          const activeGoal = getActiveGoal();
+          if (activeGoal && currentUser) {
+            const endTime = new Date();
+            const startTime = timerSessionStartedAt ? new Date(timerSessionStartedAt) : endTime;
+            appendStudySession({
+              id: createSessionId(),
+              userId: currentUser.id,
+              goalId: activeGoal.id,
+              subject: quickStudySubject,
+              title:
+                String(timerSessionTitleInput.value || "").trim() ||
+                (isQuickStartSession ? "Quick Study" : "Study session"),
+              date: dateKey(endTime),
+              durationMinutes,
+              workMode: modeBeforeStop,
+              note: String(timerQuickNoteInput.value || "").trim(),
+              startTime: startTime.toISOString(),
+              endTime: endTime.toISOString(),
+            });
+            showStatus(historyStatus, "Session saved: " + durationMinutes + " minutes.");
+          }
+        }
+
+        timerSessionStartedAt = null;
+        isQuickStartSession = false;
+        quickStartTargetMinutes = 0;
+        quickStartInitialSeconds = 0;
+        quickStartWorkMode = normalizeWorkMode(timerModeSelect.value);
+        applyQuickStartTimerUi();
+        resetTimerForMode();
+      });
+
+      timerSubjectSelect.addEventListener("change", () => {
+        quickStudySubject = normalizeQuickSubject(timerSubjectSelect.value);
+        syncQuickStudySettingsUi();
+        persistCurrentUserData();
+      });
+
+      timerModeSelect.addEventListener("change", () => {
+        stopTimerInterval();
+        timerSessionStartedAt = null;
+        isQuickStartSession = false;
+        quickStartTargetMinutes = 0;
+        quickStartInitialSeconds = 0;
+        quickStudyWorkMode = normalizeWorkMode(timerModeSelect.value);
+        quickStartWorkMode = quickStudyWorkMode;
+        syncTimerModeUi();
+        syncQuickStudySettingsUi();
+        persistCurrentUserData();
+        resetTimerForMode();
+        applyQuickStartTimerUi();
+      });
+
+      tomatoMinutesInput.addEventListener("change", () => {
+        tomatoMinutesInput.value = String(clampTomatoMinutes(tomatoMinutesInput.value));
+        if (currentTimerMode() === "tomato" && !timerId) {
+          resetTimerForMode();
+        }
+      });
+
+      function initializeLoggedOutState() {
+        goals = [];
+        weeklyTargetsByGoal = {};
+        subjects = ["General"];
+        studySessions = [];
+        quickStudySubject = "General";
+        quickStudyWorkMode = "focus_clock";
+      }
+
+      async function bootstrapApp() {
+        const restoredUser = await restoreSupabaseSessionIfAvailable();
+        if (restoredUser) {
+          completeLogin(restoredUser);
+          showStatus(onboardingStatus, "Session restored. Welcome back, " + restoredUser.name + ".");
+          return;
+        }
+
+        initializeLoggedOutState();
+        renderAll();
+        syncTimerModeUi();
+        resetTimerForMode();
+        applyQuickStartTimerUi();
+        applySidebarState();
+        applyAuthState();
+      }
+
+      bootstrapApp();
+    </script>
+  </body>
+</html>

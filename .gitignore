@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.vscode/
+.DS_Store
+*.log
+src-tauri/target/
+Cargo.lock
+.env
+.env.local
