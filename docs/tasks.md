@@ -167,7 +167,7 @@ Ghi chu trang thai:
 - App startup goi initialize_database() truoc khi tao Tauri runtime.
 - Da verify 2 lan chay lien tiep voi POMOTIME_RUN_MIGRATIONS_ONLY=1, migration chi duoc ghi 1 ban ghi trong schema_migrations.
 
-[ ] TSK-2003 (P1) Implement repository layer (Rust)
+[x] TSK-2003 (P1) Implement repository layer (Rust)
 Phu thuoc: TSK-2002
 Dau ra: CRUD layer cho tung entity
 Checklist:
@@ -177,6 +177,9 @@ Checklist:
 - Weekly target repository
 Nghiem thu:
 - CRUD co test co ban cho moi repository
+Ghi chu trang thai:
+- Da them repository layer trong src-tauri/src/repository/ cho 4 entity chinh.
+- Da them 4 test CRUD cho tung repository, chay qua cargo test voi PostgreSQL local.
 
 [ ] TSK-2004 (P1) Implement service/use-case layer (Rust)
 Phu thuoc: TSK-2003

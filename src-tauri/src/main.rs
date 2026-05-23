@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod database;
+mod repository;
 
 fn main() {
   database::initialize_database().expect("failed to initialize PostgreSQL schema");

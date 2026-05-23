@@ -5,10 +5,12 @@ const MIGRATION_NAME: &str = "0001_init_postgres.sql";
 const MIGRATION_SQL: &str = include_str!("../migrations/0001_init_postgres.sql");
 
 pub fn initialize_database() -> Result<(), String> {
-  let database_url = std::env::var("DATABASE_URL")
-    .unwrap_or_else(|_| DEFAULT_DATABASE_URL.to_string());
+  run_migrations(&resolve_database_url())
+}
 
-  run_migrations(&database_url)
+pub fn resolve_database_url() -> String {
+  std::env::var("DATABASE_URL")
+    .unwrap_or_else(|_| DEFAULT_DATABASE_URL.to_string())
 }
 
 fn run_migrations(database_url: &str) -> Result<(), String> {
