@@ -181,7 +181,7 @@ Ghi chu trang thai:
 - Da them repository layer trong src-tauri/src/repository/ cho 4 entity chinh.
 - Da them 4 test CRUD cho tung repository, chay qua cargo test voi PostgreSQL local.
 
-[ ] TSK-2004 (P1) Implement service/use-case layer (Rust)
+[x] TSK-2004 (P1) Implement service/use-case layer (Rust)
 Phu thuoc: TSK-2003
 Dau ra: xu ly nghiep vu tach khoi transport layer
 Checklist:
@@ -190,6 +190,9 @@ Checklist:
 - Use-case cho daily progress va streak
 Nghiem thu:
 - Logic nghiep vu khong nam truc tiep trong command handler
+Ghi chu trang thai:
+- Da them service layer trong src-tauri/src/services/ (auth_state_service, timer_service, progress_service).
+- Da them test cho use-case auth sync, timer stop->save session, daily progress va streak.
 
 [ ] TSK-2005 (P1) Tao Tauri commands contracts
 Phu thuoc: TSK-2004

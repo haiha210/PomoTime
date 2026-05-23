@@ -2,6 +2,7 @@
 
 mod database;
 mod repository;
+mod services;
 
 fn main() {
   database::initialize_database().expect("failed to initialize PostgreSQL schema");
