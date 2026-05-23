@@ -300,7 +300,7 @@ Ghi chu trang thai:
 - Da bo sung wrapper frontend trong src/lib/tauriCommands.ts cho add/update sessions.
 - Da nang cap History view voi filter date/subject/search, edit/delete, add manual session, export JSON/CSV.
 
-[ ] TSK-3005 (P1) Hoan thien dashboard + statistics
+[x] TSK-3005 (P1) Hoan thien dashboard + statistics
 Phu thuoc: TSK-3003, TSK-3004
 Dau ra: thong ke dung du lieu that theo spec
 Checklist:
@@ -309,6 +309,10 @@ Checklist:
 - Streak, average/session, achieved days
 Nghiem thu:
 - So lieu dashboard khop voi history va target
+Ghi chu trang thai:
+- Dashboard da doc sessions + weekly targets de hien thi KPI today/7d/30d, streak, achieved days.
+- Statistics da bo sung average/session (30d), achieved days (30d), streak va weekday target comparison.
+- Da bo sung module analytics pure logic va test frontend cho cac phep tinh thong ke.
 
 ## M4 - Chat luong, test, CI, release (3-5 ngay)
 
