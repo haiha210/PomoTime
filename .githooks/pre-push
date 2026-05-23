@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+echo "[pre-push] Running Rust format check..."
+cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+
+echo "[pre-push] Running full test suite..."
+npm run test:all

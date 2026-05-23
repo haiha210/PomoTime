@@ -10,6 +10,8 @@
     "dev": "tauri dev",
     "build": "tauri build",
     "tauri": "tauri",
+    "hooks:install": "git config core.hooksPath .githooks",
+    "prepush:check": "cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check && npm run test:all",
     "lint:frontend": "tsc --noEmit",
     "lint:rust": "cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets",
     "typecheck": "tsc --noEmit",
