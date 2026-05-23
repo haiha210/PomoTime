@@ -1,6 +1,8 @@
 use std::collections::HashSet;
 
-use chrono::{Duration, NaiveDate, Utc};
+use chrono::{Duration, NaiveDate};
+#[cfg(test)]
+use chrono::Utc;
 
 use crate::repository::StudySession;
 
@@ -59,6 +61,7 @@ impl ProgressService {
     Ok(streak)
   }
 
+  #[cfg(test)]
   pub fn calculate_streak_until_today(completed_dates: &[String]) -> Result<i32, String> {
     let today = Utc::now().date_naive().format("%Y-%m-%d").to_string();
     Self::calculate_streak(completed_dates, &today)

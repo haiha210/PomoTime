@@ -25,7 +25,7 @@ describe("App", () => {
     fireEvent.change(screen.getByLabelText("Password"), {
       target: { value: "demo-password" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Sign in with email" }));
+    fireEvent.click(screen.getByRole("button", { name: "Login" }));
 
     expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
     expect(screen.getByTestId("command-status")).toHaveTextContent("Command:");
@@ -40,7 +40,7 @@ describe("App", () => {
     fireEvent.change(screen.getByLabelText("Password"), {
       target: { value: "" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Sign in with email" }));
+    fireEvent.click(screen.getByRole("button", { name: "Login" }));
 
     expect(await screen.findByTestId("auth-status")).toHaveTextContent(
       "Email and password are required"
@@ -66,22 +66,22 @@ describe("App", () => {
   it("navigates across all main views without crashing", async () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Sign in with email" }));
+    fireEvent.click(screen.getByRole("button", { name: "Login" }));
     await screen.findByRole("heading", { name: "Dashboard" });
 
     fireEvent.click(screen.getByRole("link", { name: "Onboarding" }));
     expect(await screen.findByRole("heading", { name: "Onboarding" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("link", { name: "Timer" }));
+    fireEvent.click(screen.getByRole("link", { name: "Session Timer" }));
     expect(await screen.findByRole("heading", { name: "Timer" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("link", { name: "History" }));
     expect(await screen.findByRole("heading", { name: "History" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("link", { name: "Stats" }));
+    fireEvent.click(screen.getByRole("link", { name: "Statistics" }));
     expect(await screen.findByRole("heading", { name: "Statistics" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("link", { name: "Goals" }));
+    fireEvent.click(screen.getByRole("link", { name: "Goal Settings" }));
     expect(await screen.findByRole("heading", { name: "Goals" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("link", { name: "Dashboard" }));

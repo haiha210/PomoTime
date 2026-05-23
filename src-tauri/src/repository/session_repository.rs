@@ -70,6 +70,7 @@ impl StudySessionRepository {
     Ok(map_session(&row))
   }
 
+  #[cfg(test)]
   pub fn find_by_id(&self, id: &str) -> Result<Option<StudySession>, String> {
     let mut client = connect(&self.database_url)?;
     let row = client

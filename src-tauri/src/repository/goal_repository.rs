@@ -53,6 +53,7 @@ impl GoalRepository {
     Ok(map_goal(&row))
   }
 
+  #[cfg(test)]
   pub fn find_by_id(&self, id: &str) -> Result<Option<Goal>, String> {
     let mut client = connect(&self.database_url)?;
     let row = client

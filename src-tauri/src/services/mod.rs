@@ -1,3 +1,4 @@
+#[cfg(test)]
 mod auth_state_service;
 mod progress_service;
 mod timer_service;

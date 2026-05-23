@@ -63,6 +63,7 @@ pub struct WeeklyGoalTarget {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg(test)]
 pub struct CreateWeeklyGoalTargetInput {
   pub goal_id: String,
   pub weekday: i16,
@@ -70,6 +71,7 @@ pub struct CreateWeeklyGoalTargetInput {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg(test)]
 pub struct UpdateWeeklyGoalTargetInput {
   pub weekday: i16,
   pub target_minutes: i32,

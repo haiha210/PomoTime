@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { tauriCommands, type SessionRecord } from "../../lib/tauriCommands";
+import { tauriCommands, type GoalRecord, type SessionRecord, type SubjectRecord } from "../../lib/tauriCommands";
 import { formatIsoDate } from "../../shared/utils/dateTime";
 
 interface HistoryViewProps {
@@ -27,13 +27,30 @@ function endIsoFromStartAndDuration(startIso: string, durationMinutes: number): 
   return new Date(start.getTime() + durationMinutes * 60_000).toISOString();
 }
 
-export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
-  const [sessions, setSessions] = useState<SessionRecord[]>([]);
-  const [search, setSearch] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
-  const [subjectFilter, setSubjectFilter] = useState("all");
-  const [status, setStatus] = useState("Load sessions from DB to manage history.");
+function isoDateFromTimestamp(timestamp: string): string {
+  const parsed = new Date(timestamp);
+  if (Number.isNaN(parsed.getTime())) {
+    return timestamp.slice(0, 10);
+  }
 
+  return parsed.toISOString().slice(0, 10);
+}
+
+export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
+  const [goals, setGoals] = useState<GoalRecord[]>([]);
+  const [subjects, setSubjects] = useState<SubjectRecord[]>([]);
+  const [sessions, setSessions] = useState<SessionRecord[]>([]);
+
+  const [search, setSearch] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [subjectFilter, setSubjectFilter] = useState("all");
+
+  const [status, setStatus] = useState("Load sessions from DB to manage history.");
+  const [isManualPanelOpen, setIsManualPanelOpen] = useState(false);
+
+  const [manualGoalId, setManualGoalId] = useState("none");
+  const [manualSubjectId, setManualSubjectId] = useState("none");
   const [manualTitle, setManualTitle] = useState("Manual session");
   const [manualDate, setManualDate] = useState(new Date().toISOString().slice(0, 10));
   const [manualTime, setManualTime] = useState("08:00");
@@ -45,44 +62,89 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
   const [editingTitle, setEditingTitle] = useState("");
   const [editingDuration, setEditingDuration] = useState(0);
 
-  async function loadSessions(): Promise<void> {
-    const response = await tauriCommands.listSessions(userId);
-    if (!response.success || !response.data) {
-      setStatus(response.error || "Unable to load sessions.");
+  const goalNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    goals.forEach((goal) => {
+      map.set(goal.id, goal.title);
+    });
+    return map;
+  }, [goals]);
+
+  const subjectNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    subjects.forEach((subject) => {
+      map.set(subject.id, subject.name);
+    });
+    return map;
+  }, [subjects]);
+
+  async function loadData(): Promise<void> {
+    const [sessionsResponse, goalsResponse, subjectsResponse] = await Promise.all([
+      tauriCommands.listSessions(userId),
+      tauriCommands.listGoals(userId),
+      tauriCommands.listSubjects(userId),
+    ]);
+
+    if (!sessionsResponse.success || !sessionsResponse.data) {
+      setStatus(sessionsResponse.error || "Unable to load sessions.");
+      setSessions([]);
       return;
     }
 
-    setSessions(response.data);
+    setSessions(sessionsResponse.data);
+
+    if (goalsResponse.success && goalsResponse.data) {
+      setGoals(goalsResponse.data);
+      const activeGoal = goalsResponse.data.find((goal) => goal.is_active) || goalsResponse.data[0] || null;
+      setManualGoalId(activeGoal?.id || "none");
+    } else {
+      setGoals([]);
+      setManualGoalId("none");
+    }
+
+    if (subjectsResponse.success && subjectsResponse.data) {
+      setSubjects(subjectsResponse.data);
+      setManualSubjectId(subjectsResponse.data[0]?.id || "none");
+    } else {
+      setSubjects([]);
+      setManualSubjectId("none");
+    }
   }
 
   useEffect(() => {
-    void loadSessions();
+    void loadData();
   }, [userId]);
 
   const filteredSessions = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
-    return sessions.filter((session) => {
-      if (dateFilter && !session.start_time.startsWith(dateFilter)) {
-        return false;
-      }
+    return [...sessions]
+      .sort((left, right) => right.start_time.localeCompare(left.start_time))
+      .filter((session) => {
+        const sessionDate = isoDateFromTimestamp(session.start_time);
+        const subjectName = session.subject_id ? subjectNameById.get(session.subject_id) || session.subject_id : "General";
+        const goalName = session.goal_id ? goalNameById.get(session.goal_id) || session.goal_id : "No goal";
 
-      if (subjectFilter !== "all" && (session.subject_id || "none") !== subjectFilter) {
-        return false;
-      }
+        if (fromDate && sessionDate < fromDate) {
+          return false;
+        }
 
-      if (!normalizedSearch) {
-        return true;
-      }
+        if (toDate && sessionDate > toDate) {
+          return false;
+        }
 
-      const haystack = `${session.title} ${session.note}`.toLowerCase();
-      return haystack.includes(normalizedSearch);
-    });
-  }, [sessions, search, dateFilter, subjectFilter]);
+        if (subjectFilter !== "all" && (session.subject_id || "none") !== subjectFilter) {
+          return false;
+        }
 
-  const subjectOptions = useMemo(() => {
-    return Array.from(new Set(sessions.map((session) => session.subject_id || "none")));
-  }, [sessions]);
+        if (!normalizedSearch) {
+          return true;
+        }
+
+        const haystack = `${session.title} ${session.note} ${subjectName} ${goalName}`.toLowerCase();
+        return haystack.includes(normalizedSearch);
+      });
+  }, [fromDate, goalNameById, search, sessions, subjectFilter, subjectNameById, toDate]);
 
   async function handleDelete(sessionId: string): Promise<void> {
     const response = await tauriCommands.deleteSession(sessionId);
@@ -92,20 +154,23 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
     }
 
     setStatus("Session deleted.");
-    await loadSessions();
+    await loadData();
   }
 
   async function handleAddManualSession(): Promise<void> {
     const startIso = new Date(`${manualDate}T${manualTime}:00.000Z`).toISOString();
-    const endIso = endIsoFromStartAndDuration(startIso, manualDuration);
+    const safeDuration = Math.max(1, manualDuration);
+    const endIso = endIsoFromStartAndDuration(startIso, safeDuration);
 
     const response = await tauriCommands.addManualSession({
       userId,
+      goalId: manualGoalId === "none" ? undefined : manualGoalId,
+      subjectId: manualSubjectId === "none" ? undefined : manualSubjectId,
       title: manualTitle.trim() || "Manual session",
       note: manualNote,
       startTime: startIso,
       endTime: endIso,
-      durationMinutes: Math.max(1, manualDuration),
+      durationMinutes: safeDuration,
       workMode: manualMode,
     });
 
@@ -115,7 +180,8 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
     }
 
     setStatus("Manual session added.");
-    await loadSessions();
+    setIsManualPanelOpen(false);
+    await loadData();
   }
 
   async function handleUpdateSession(session: SessionRecord): Promise<void> {
@@ -138,24 +204,32 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
 
     setEditingId("");
     setStatus("Session updated.");
-    await loadSessions();
+    await loadData();
   }
 
   function exportAsJson(): void {
-    downloadText(
-      JSON.stringify(filteredSessions, null, 2),
-      "pomotime-history.json",
-      "application/json"
-    );
+    const normalized = filteredSessions.map((session) => ({
+      id: session.id,
+      date: isoDateFromTimestamp(session.start_time),
+      goal: session.goal_id ? goalNameById.get(session.goal_id) || session.goal_id : "No goal",
+      subject: session.subject_id ? subjectNameById.get(session.subject_id) || session.subject_id : "General",
+      title: session.title,
+      duration_minutes: session.duration_minutes,
+      work_mode: session.work_mode,
+      note: session.note,
+    }));
+
+    downloadText(JSON.stringify(normalized, null, 2), "pomotime-history.json", "application/json");
   }
 
   function exportAsCsv(): void {
-    const header = ["id", "title", "date", "duration_minutes", "work_mode", "note"];
+    const header = ["date", "goal", "subject", "title", "duration_minutes", "work_mode", "note"];
     const body = filteredSessions.map((session) =>
       [
-        session.id,
+        isoDateFromTimestamp(session.start_time),
+        session.goal_id ? goalNameById.get(session.goal_id) || session.goal_id : "No goal",
+        session.subject_id ? subjectNameById.get(session.subject_id) || session.subject_id : "General",
         session.title,
-        session.start_time,
         String(session.duration_minutes),
         session.work_mode,
         session.note,
@@ -170,36 +244,47 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
   return (
     <section className="panel">
       <h2>History</h2>
-      <p>Review, edit, or clean up your study sessions.</p>
+      <p className="muted">Quick scan with date range filters.</p>
 
-      <div className="button-row">
-        <label>
+      <div className="grid-4" style={{ marginBottom: "10px" }}>
+        <label className="field">
           Search
-          <input value={search} onChange={(event) => setSearch(event.target.value)} type="text" />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            type="text"
+            placeholder="Search title or subject"
+          />
         </label>
 
-        <label>
-          Date
-          <input value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} type="date" />
+        <label className="field">
+          From date
+          <input value={fromDate} onChange={(event) => setFromDate(event.target.value)} type="date" />
         </label>
 
-        <label>
+        <label className="field">
+          To date
+          <input value={toDate} onChange={(event) => setToDate(event.target.value)} type="date" />
+        </label>
+
+        <label className="field">
           Subject
-          <select
-            value={subjectFilter}
-            onChange={(event) => setSubjectFilter(event.target.value)}
-          >
-            <option value="all">All</option>
-            {subjectOptions.map((subjectId) => (
-              <option key={subjectId} value={subjectId}>
-                {subjectId}
+          <select value={subjectFilter} onChange={(event) => setSubjectFilter(event.target.value)}>
+            <option value="all">All subjects</option>
+            <option value="none">General</option>
+            {subjects.map((subject) => (
+              <option key={subject.id} value={subject.id}>
+                {subject.name}
               </option>
             ))}
           </select>
         </label>
       </div>
 
-      <div className="button-row">
+      <div className="btn-row" style={{ marginBottom: "10px" }}>
+        <button className="btn secondary" type="button" onClick={() => setIsManualPanelOpen((current) => !current)}>
+          Add manual session
+        </button>
         <button className="btn secondary" type="button" onClick={exportAsJson}>
           Export JSON
         </button>
@@ -208,116 +293,178 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
         </button>
       </div>
 
-      <div className="panel">
-        <h3>Add manual session</h3>
-        <div className="button-row">
-          <label>
-            Title
-            <input value={manualTitle} onChange={(event) => setManualTitle(event.target.value)} type="text" />
-          </label>
-          <label>
-            Date
-            <input value={manualDate} onChange={(event) => setManualDate(event.target.value)} type="date" />
-          </label>
-          <label>
-            Time
-            <input value={manualTime} onChange={(event) => setManualTime(event.target.value)} type="time" />
-          </label>
-          <label>
-            Duration (min)
-            <input
-              value={manualDuration}
-              onChange={(event) => setManualDuration(Number(event.target.value || 0))}
-              type="number"
-              min={1}
-            />
-          </label>
-          <label>
-            Mode
-            <select value={manualMode} onChange={(event) => setManualMode(event.target.value)}>
-              <option value="focus_clock">focus_clock</option>
-              <option value="pomodoro">pomodoro</option>
-            </select>
-          </label>
-          <label>
-            Note
-            <input value={manualNote} onChange={(event) => setManualNote(event.target.value)} type="text" />
-          </label>
+      {isManualPanelOpen ? (
+        <div className="panel" style={{ marginBottom: "10px" }}>
+          <h3>Add manual session</h3>
+          <div className="grid-4">
+            <label className="field">
+              Goal
+              <select value={manualGoalId} onChange={(event) => setManualGoalId(event.target.value)}>
+                <option value="none">No goal</option>
+                {goals.map((goal) => (
+                  <option key={goal.id} value={goal.id}>
+                    {goal.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field">
+              Subject
+              <select value={manualSubjectId} onChange={(event) => setManualSubjectId(event.target.value)}>
+                <option value="none">General</option>
+                {subjects.map((subject) => (
+                  <option key={subject.id} value={subject.id}>
+                    {subject.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field">
+              Date
+              <input value={manualDate} onChange={(event) => setManualDate(event.target.value)} type="date" />
+            </label>
+
+            <label className="field">
+              Time
+              <input value={manualTime} onChange={(event) => setManualTime(event.target.value)} type="time" />
+            </label>
+          </div>
+
+          <div className="grid-4">
+            <label className="field">
+              Title
+              <input value={manualTitle} onChange={(event) => setManualTitle(event.target.value)} type="text" />
+            </label>
+
+            <label className="field">
+              Duration (min)
+              <input
+                value={manualDuration}
+                onChange={(event) => setManualDuration(Number(event.target.value || 0))}
+                type="number"
+                min={1}
+              />
+            </label>
+
+            <label className="field">
+              Work mode
+              <select value={manualMode} onChange={(event) => setManualMode(event.target.value)}>
+                <option value="focus_clock">Focus Clock</option>
+                <option value="pomodoro">Tomato Sprint</option>
+              </select>
+            </label>
+
+            <label className="field">
+              Note
+              <input value={manualNote} onChange={(event) => setManualNote(event.target.value)} type="text" />
+            </label>
+          </div>
+
+          <div className="btn-row">
+            <button className="btn primary" type="button" onClick={() => void handleAddManualSession()}>
+              Save session
+            </button>
+            <button className="btn secondary" type="button" onClick={() => setIsManualPanelOpen(false)}>
+              Cancel
+            </button>
+          </div>
         </div>
-        <button className="btn primary" type="button" onClick={() => void handleAddManualSession()}>
-          Add manual session
-        </button>
-      </div>
+      ) : null}
 
-      <ul className="history-list">
-        {filteredSessions.map((session) => (
-          <li key={session.id}>
-            <strong>
-              {editingId === session.id ? (
-                <input
-                  type="text"
-                  value={editingTitle}
-                  onChange={(event) => setEditingTitle(event.target.value)}
-                />
-              ) : (
-                session.title
-              )}
-            </strong>
-            <span>
-              {formatIsoDate(session.start_time)} · {session.duration_minutes} minutes · {session.work_mode}
-            </span>
-
-            {editingId === session.id ? (
-              <div className="button-row">
-                <label>
-                  Duration
-                  <input
-                    type="number"
-                    value={editingDuration}
-                    min={1}
-                    onChange={(event) => setEditingDuration(Number(event.target.value || 0))}
-                  />
-                </label>
-                <button
-                  className="btn primary"
-                  type="button"
-                  onClick={() => void handleUpdateSession(session)}
-                >
-                  Save edit
-                </button>
-                <button className="btn secondary" type="button" onClick={() => setEditingId("")}>
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <div className="button-row">
-                <button
-                  className="btn secondary"
-                  type="button"
-                  onClick={() => {
-                    setEditingId(session.id);
-                    setEditingTitle(session.title);
-                    setEditingDuration(session.duration_minutes);
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  className="btn danger"
-                  type="button"
-                  onClick={() => void handleDelete(session.id)}
-                >
-                  Delete
-                </button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-
-      <p className="status-line" data-testid="history-status">
+      <p className="status-line" data-testid="history-status" style={{ marginBottom: "8px" }}>
         {status}
       </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Goal</th>
+            <th>Subject</th>
+            <th>Title</th>
+            <th>Duration</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredSessions.length === 0 ? (
+            <tr>
+              <td colSpan={6} className="muted" style={{ textAlign: "center" }}>
+                No sessions match current filters.
+              </td>
+            </tr>
+          ) : (
+            filteredSessions.map((session) => {
+              const goalName = session.goal_id ? goalNameById.get(session.goal_id) || session.goal_id : "No goal";
+              const subjectName = session.subject_id ? subjectNameById.get(session.subject_id) || session.subject_id : "General";
+
+              return (
+                <tr key={session.id}>
+                  <td>{formatIsoDate(session.start_time)}</td>
+                  <td>{goalName}</td>
+                  <td>{subjectName}</td>
+                  <td>
+                    {editingId === session.id ? (
+                      <input
+                        type="text"
+                        value={editingTitle}
+                        onChange={(event) => setEditingTitle(event.target.value)}
+                      />
+                    ) : (
+                      session.title
+                    )}
+                  </td>
+                  <td>
+                    {editingId === session.id ? (
+                      <input
+                        type="number"
+                        min={1}
+                        value={editingDuration}
+                        onChange={(event) => setEditingDuration(Number(event.target.value || 0))}
+                      />
+                    ) : (
+                      `${session.duration_minutes} min`
+                    )}
+                  </td>
+                  <td>
+                    <div className="btn-row">
+                      {editingId === session.id ? (
+                        <>
+                          <button className="btn primary" type="button" onClick={() => void handleUpdateSession(session)}>
+                            Save
+                          </button>
+                          <button className="btn secondary" type="button" onClick={() => setEditingId("")}>
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            className="btn secondary"
+                            type="button"
+                            onClick={() => {
+                              setEditingId(session.id);
+                              setEditingTitle(session.title);
+                              setEditingDuration(session.duration_minutes);
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button className="btn danger" type="button" onClick={() => void handleDelete(session.id)}>
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
     </section>
   );
 }

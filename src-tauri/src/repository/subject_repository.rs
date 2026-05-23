@@ -28,6 +28,7 @@ impl SubjectRepository {
     Ok(map_subject(&row))
   }
 
+  #[cfg(test)]
   pub fn find_by_id(&self, id: &str) -> Result<Option<Subject>, String> {
     let mut client = connect(&self.database_url)?;
     let row = client

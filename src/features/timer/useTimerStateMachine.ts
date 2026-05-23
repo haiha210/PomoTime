@@ -26,6 +26,7 @@ export interface TimerMachineViewState {
 export interface TimerStateMachineApi {
   state: TimerMachineViewState;
   setMode(mode: TimerMode): void;
+  setPomodoroMinutes(minutes: number): void;
   start(): void;
   pause(): void;
   resume(): void;
@@ -66,7 +67,24 @@ export function useTimerStateMachine(): TimerStateMachineApi {
       displaySeconds: state.mode === "pomodoro" ? remainingSeconds : activeSeconds,
     },
     setMode: (mode) => {
-      setState((previous) => selectTimerMode(previous, mode, POMODORO_SECONDS));
+      setState((previous) => {
+        const nextTargetSeconds = previous.targetSeconds > 0 ? previous.targetSeconds : POMODORO_SECONDS;
+        return selectTimerMode(previous, mode, nextTargetSeconds);
+      });
+      setNowMs(Date.now());
+    },
+    setPomodoroMinutes: (minutes) => {
+      const normalizedMinutes = Math.max(1, Math.min(180, Math.floor(minutes || 0)));
+      setState((previous) => {
+        if (previous.status !== "idle") {
+          return previous;
+        }
+
+        return {
+          ...previous,
+          targetSeconds: normalizedMinutes * 60,
+        };
+      });
       setNowMs(Date.now());
     },
     start: () => {

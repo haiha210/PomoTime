@@ -14,18 +14,21 @@ function displayNameFromEmail(email: string): string {
 
 export async function loginWithEmailPassword(
   email: string,
-  password: string
+  password: string,
+  displayNameOverride?: string
 ): Promise<AuthResult> {
   if (!email.trim() || !password.trim()) {
     return { error: "Email and password are required" };
   }
 
   const supabaseClient = getSupabaseClient();
+  const normalizedDisplayName = String(displayNameOverride || "").trim();
+
   if (!supabaseClient) {
     const session = {
       userId: `demo-${email.toLowerCase()}`,
       email,
-      displayName: displayNameFromEmail(email),
+      displayName: normalizedDisplayName || displayNameFromEmail(email),
       provider: "demo" as const,
     };
 
@@ -48,6 +51,7 @@ export async function loginWithEmailPassword(
       email: data.user.email || email,
       displayName:
         String(data.user.user_metadata?.full_name || "").trim() ||
+        normalizedDisplayName ||
         displayNameFromEmail(data.user.email || email),
       avatarUrl: data.user.user_metadata?.avatar_url || null,
       provider: "supabase",

@@ -126,17 +126,17 @@ describe("critical smoke flows", () => {
   it("supports login and logout", async () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Sign in with email" }));
+    fireEvent.click(screen.getByRole("button", { name: "Login" }));
     expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Logout" }));
-    expect(await screen.findByRole("button", { name: "Sign in with email" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Login" })).toBeInTheDocument();
   });
 
   it("creates first goal from onboarding", async () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Sign in with email" }));
+    fireEvent.click(screen.getByRole("button", { name: "Login" }));
     await screen.findByRole("heading", { name: "Dashboard" });
 
     fireEvent.click(screen.getByRole("link", { name: "Onboarding" }));
@@ -156,10 +156,10 @@ describe("critical smoke flows", () => {
 
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Sign in with email" }));
+    fireEvent.click(screen.getByRole("button", { name: "Login" }));
     await screen.findByRole("heading", { name: "Dashboard" });
 
-    fireEvent.click(screen.getByRole("link", { name: "Timer" }));
+    fireEvent.click(screen.getByRole("link", { name: "Session Timer" }));
     await screen.findByRole("heading", { name: "Timer" });
 
     fireEvent.click(screen.getByRole("button", { name: "Start" }));

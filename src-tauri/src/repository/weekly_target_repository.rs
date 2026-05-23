@@ -1,6 +1,9 @@
 use postgres::Row;
 
-use super::{connect, CreateWeeklyGoalTargetInput, UpdateWeeklyGoalTargetInput, WeeklyGoalTarget};
+use super::{connect, WeeklyGoalTarget};
+
+#[cfg(test)]
+use super::{CreateWeeklyGoalTargetInput, UpdateWeeklyGoalTargetInput};
 
 #[derive(Clone)]
 pub struct WeeklyGoalTargetRepository {
@@ -12,6 +15,7 @@ impl WeeklyGoalTargetRepository {
     Self { database_url }
   }
 
+  #[cfg(test)]
   pub fn create(&self, input: CreateWeeklyGoalTargetInput) -> Result<WeeklyGoalTarget, String> {
     let mut client = connect(&self.database_url)?;
     let row = client
@@ -28,6 +32,7 @@ impl WeeklyGoalTargetRepository {
     Ok(map_weekly_target(&row))
   }
 
+  #[cfg(test)]
   pub fn find_by_id(&self, id: &str) -> Result<Option<WeeklyGoalTarget>, String> {
     let mut client = connect(&self.database_url)?;
     let row = client
@@ -61,6 +66,7 @@ impl WeeklyGoalTargetRepository {
     Ok(rows.iter().map(map_weekly_target).collect())
   }
 
+  #[cfg(test)]
   pub fn update(
     &self,
     id: &str,
@@ -85,6 +91,7 @@ impl WeeklyGoalTargetRepository {
     Ok(row.as_ref().map(map_weekly_target))
   }
 
+  #[cfg(test)]
   pub fn delete(&self, id: &str) -> Result<bool, String> {
     let mut client = connect(&self.database_url)?;
     let deleted = client

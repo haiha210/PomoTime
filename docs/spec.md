@@ -328,189 +328,183 @@ Phiên bản đầu tiên nên bao gồm:
 - Người dùng duy trì được mục tiêu học hằng ngày nhờ nhắc nhở và streak.
 - Ứng dụng chạy ổn định trên nhiều nền tảng với cùng logic lõi bằng Rust.
 
-## 15. Thiết kế UI phong cách tối giản
+## 15. Đặc tả giao diện theo docs/index.html
 
-### 15.1. Định hướng thị giác
+### 15.1. Nguồn sự thật giao diện
 
-- Tối giản, nhiều khoảng trắng, ưu tiên nội dung và hành động chính.
-- Mỗi màn hình chỉ có 1 hành động chính (primary action) để giảm nhiễu.
-- Hạn chế màu sắc: dùng nền trung tính và 1 màu nhấn chủ đạo.
-- Ưu tiên tính rõ ràng hơn trang trí, giảm icon và hiệu ứng không cần thiết.
+- File docs/index.html là prototype chuẩn để so khớp giao diện.
+- Mọi mô tả UI trong section này được đồng bộ theo đúng cấu trúc, class và hành vi trong prototype.
 
-### 15.2. Design tokens (đề xuất)
+### 15.2. Visual style và design tokens đang dùng
 
-- Màu sắc:
-  - `--bg`: #F6F6F4
-  - `--surface`: #FFFFFF
-  - `--surface-muted`: #F1F1EE
-  - `--text-primary`: #111315
-  - `--text-secondary`: #5D646B
-  - `--accent`: #0F766E
-  - `--success`: #2E7D32
-  - `--warning`: #B7791F
-  - `--danger`: #C62828
-  - `--border`: #E3E5E8
 - Typography:
-  - Font chính: Manrope
-  - Font số/timer: IBM Plex Mono
-  - Cỡ chữ:
-    - Heading 1: 28/36, semibold
-    - Heading 2: 22/30, semibold
-    - Body: 15/24, regular
-    - Caption: 13/20, regular
-- Spacing scale: 4, 8, 12, 16, 24, 32.
-- Border radius: 10 (card), 8 (input/button), 999 (pill).
-- Shadow: rất nhẹ, chỉ dùng cho card nổi bật (`0 2 12 rgba(0,0,0,0.05)`).
+  - Font chính: Manrope.
+  - Font timer: IBM Plex Mono.
+- Màu chủ đạo:
+  - --bg: #f6f6f4
+  - --surface: #ffffff
+  - --surface-muted: #f1f1ee
+  - --text-primary: #111315
+  - --text-secondary: #5d646b
+  - --accent: #0f766e
+  - --accent-strong: #0b5d57
+  - --success: #2e7d32
+  - --warning: #b7791f
+  - --danger: #c62828
+  - --border: #e3e5e8
+- Radius/shadow:
+  - Radius: 16/10/8 (lg/md/sm), pill 999.
+  - Shadow chính: 0 10px 30px rgba(0, 0, 0, 0.05).
+- Nền:
+  - Body dùng radial gradient + overlay đường kẻ dọc nhẹ.
 
-### 15.3. Bố cục tổng thể (ưu tiên Linux/Windows)
+### 15.3. App shell và responsive layout
 
-- Kích thước cửa sổ tối thiểu: 1100x720.
-- Desktop mặc định: sidebar trái + vùng nội dung chính.
-  - Sidebar: 232px.
-  - Content: phần còn lại, max-width 1200px, canh giữa.
-- Trên chiều rộng nhỏ hơn 1024px: chuyển sidebar sang dạng thu gọn icon.
+- Trạng thái mặc định:
+  - app-shell dạng grid 2 cột: 248px sidebar + vùng main.
+  - Main nằm trong panel bán trong suốt, bo góc lớn, có border.
+- Trạng thái auth-screen:
+  - Ẩn sidebar.
+  - Ẩn topbar và auth-status.
+  - Main chuyển về layout 1 cột, max-width 860px.
+- Trạng thái sidebar-hidden:
+  - Ẩn sidebar, content full width.
+- Responsive:
+  - <=1180px: sidebar thu gọn dạng icon.
+  - <=980px: layout 1 cột, sidebar sticky dạng hàng ngang cuộn.
+  - <=640px: weekly-grid chuyển 1 cột.
 
-### 15.4. Điều hướng
+### 15.4. Điều hướng và topbar
 
-- Sidebar trái:
-  - Dashboard
-  - Session Timer
-  - History
-  - Statistics
-  - Goals & Settings
-- Top bar:
-  - Tên mục tiêu hiện tại
-  - Streak hiện tại
-  - Avatar + tên user hiện tại và menu tài khoản
+- Sidebar menu (đúng thứ tự): Onboarding, Dashboard, Session Timer, History, Statistics, Goal Settings.
+- Mỗi menu là nav-btn có icon ký tự, trạng thái active đổi nền và border.
+- Topbar gồm:
+  - Nút hide/show sidebar.
+  - Goal chip active.
+  - Goal count chip.
+  - Streak chip.
+  - User chip (avatar + name + email) khi đã đăng nhập.
+- Sidebar footer có nút auth action (logout/login state).
 
-### 15.5. Thiết kế theo màn hình
+### 15.5. Đặc tả từng view đúng prototype
 
-#### 15.5.1. Đăng nhập / đăng ký
+#### 15.5.1. Login view
 
-- Bố cục 2 cột:
-  - Trái: form đăng nhập tối giản.
-  - Phải: khối giới thiệu ngắn về lợi ích theo dõi học tập.
-- Màn login là layout độc lập, không hiển thị sidebar và top bar của app chính.
-- Thành phần chính:
-  - Nút Continue with Google (Supabase OAuth).
-  - Email, mật khẩu, nút Đăng nhập (Supabase Auth).
-  - Link tạo tài khoản, quên mật khẩu.
-  - Social login khác (GitHub, Apple) ở giai đoạn sau.
+- Layout 2 panel: login-card và login-side.
+- Form gồm: display name optional, email, password.
+- Actions:
+  - Nút Login.
+  - Divider "or".
+  - Nút Continue with Google có icon SVG Google.
+- Có status text cho lỗi/thành công đăng nhập.
 
-#### 15.5.2. Onboarding tạo mục tiêu ban đầu (flow ưu tiên)
+#### 15.5.2. Onboarding view
 
-- Dạng stepper 3 bước, luôn hiển thị tiến độ ở đầu màn hình.
-- Bước 1: Thông tin mục tiêu.
-  - Tên mục tiêu (ví dụ: IELTS 6.5).
-  - Loại mục tiêu (certificate/custom).
-- Bước 2: Khoảng thời gian.
-  - Ngày bắt đầu, ngày kết thúc.
-  - Hiển thị số tuần ước tính.
-- Bước 3: Chỉ tiêu theo ngày trong tuần.
-  - 7 hàng (Thứ 2 -> Chủ nhật), mỗi hàng gồm công tắc bật/tắt + số phút.
-  - Nút áp dụng nhanh: Mon-Fri 120 phút, Weekend 60 phút.
-- Trạng thái chưa có goal:
-  - Hiển thị form tạo goal trực tiếp ngay Onboarding.
-  - Sau khi tạo thành công, chuyển sang Quick Study để bắt đầu học.
-- Trạng thái đã có goal:
-  - Quick Study tối giản chỉ còn 1 nút Study now.
-  - Quick Study sử dụng active goal hiện tại.
-  - Hiển thị Subject và Work mode dưới dạng text có thể click để mở modal chỉnh nhanh.
-  - Mặc định lấy Subject/Work mode từ phiên học gần nhất.
-  - Nếu chưa có phiên học nào thì lấy Subject mới tạo gần nhất và Work mode Focus Clock.
-  - Hiển thị biểu đồ "Study time - last 7 days" theo từng ngày.
-  - Ngày đạt target hiển thị cột màu xanh.
+- Bố cục 2 panel:
+  - Panel trái: Quick Study.
+  - Panel phải: Study summary this week.
+- Panel trái có 2 trạng thái:
+  - Chưa có goal: hiện onboarding-create-goal-panel để tạo goal đầu tiên.
+  - Đã có goal: hiện onboarding-quick-start-panel với nút Study now.
+- Quick Study hiển thị Subject và Work mode dưới dạng text-action button.
+- Có modal riêng để sửa nhanh Subject và Work mode.
+- Panel phải gồm:
+  - 3 KPI: total time, sessions, average.
+  - Chart "Study time - last 7 days" theo cột.
+  - Cột đạt target dùng class achieved màu xanh.
+  - Danh sách recent study hours.
 
-#### 15.5.3. Dashboard
+#### 15.5.3. Dashboard view
 
-- Hàng 1 (thẻ lớn):
-  - Tiến độ ngày hôm nay (phút đã học / mục tiêu hôm nay).
-  - Progress bar ngang, số phần trăm lớn.
-- Hàng 2 (thẻ nhỏ):
-  - Streak hiện tại.
-  - Tổng thời gian 7 ngày gần nhất.
-  - Số phiên học tuần này.
-- Hàng 3:
-  - Biểu đồ cột 7 ngày.
-  - Nút CTA rõ ràng: Bắt đầu phiên học.
+- Có dashboard filters ở đầu view:
+  - Goal filter.
+  - Time range filter (this-week, this-month, last-3-months).
+  - Subject filter.
+- KPI row gồm 3 card:
+  - Today progress + progress bar.
+  - 7-day total.
+  - Sessions this week.
+- Panel dưới hiển thị bars chart 7 ngày + nút Start study session.
 
-#### 15.5.4. Session Timer
+#### 15.5.4. Session Timer view
 
-- Trọng tâm màn hình là timer lớn (font mono).
-- Thành phần:
-  - Chọn môn học/chủ đề.
-  - Tên phiên học.
-  - Nút: Bắt đầu, Tạm dừng, Kết thúc.
-  - Ô ghi chú nhanh.
-- Trạng thái nút rõ ràng bằng màu nhấn và icon tối giản.
+- Inputs:
+  - Subject select.
+  - Session title.
+  - Work mode (tomato/focus_clock).
+  - Tomato length (chỉ dùng cho mode tomato).
+- Timer display dùng font mono, kích thước lớn.
+- Controls: Start, Pause, Stop.
+- Có quick notes textarea.
+- Có các class state cho quick-start-running, quick-start-pending, quick-start-achieved.
 
-#### 15.5.5. History
+#### 15.5.5. History view
 
-- Header:
-  - Ô tìm kiếm.
-  - Bộ lọc ngày và môn học.
-- Nội dung:
-  - Bảng tối giản, mỗi dòng là một phiên học.
-  - Click dòng để mở drawer chỉnh sửa/xóa.
+- Filter row gồm 4 trường:
+  - Search.
+  - From date.
+  - To date.
+  - Subject.
+- Action row:
+  - Add manual session.
+  - Export JSON.
+  - Export CSV.
+- Data table columns:
+  - Date, Goal, Subject, Title, Duration, Actions.
 
-#### 15.5.6. Statistics
+#### 15.5.6. Statistics view
 
-- Thanh filter trên cùng:
-  - tuần này, tháng này, 3 tháng gần nhất, tùy chọn.
-- Vùng biểu đồ:
-  - Cột: thời lượng theo ngày.
-  - Đường: xu hướng theo tuần.
-  - Tròn: tỷ lệ theo môn học.
-- Cạnh biểu đồ là panel số liệu tổng hợp (hours, sessions, average).
+- Header có active goal label và bộ nút range.
+- KPI row gồm:
+  - Total study time.
+  - Goal achieved days.
+  - Average per day.
+- Stats layout 2 cột:
+  - Weekly trend bars.
+  - Subject split donut.
+- Panel chi tiết:
+  - Daily goal achievement by subject (achievement chart).
+  - Streak analytics.
+  - Streak by subject.
+  - Streak by goal.
 
-#### 15.5.7. Goals & Settings
+#### 15.5.7. Goal Settings view
 
-- Khối 1: Mục tiêu chính.
-  - Tên mục tiêu, loại mục tiêu, thời gian hiệu lực.
-- Khối 2: Danh sách goal.
-  - Hiển thị toàn bộ goals.
-  - Mỗi goal có hành động Detail để mở cấu hình riêng.
-- Khối 3: Goal detail.
-  - Hiển thị thông tin goal đang chọn.
-  - Thiết lập chỉ tiêu theo ngày trong tuần cho đúng goal đó.
-  - Có thể đặt goal đang mở làm active goal.
-- Khối 4: Nhắc nhở.
-  - Bật/tắt nhắc học.
-  - Chọn giờ nhắc mỗi ngày.
+- Khối Create goal:
+  - Goal title, goal type, start date, end date, Add goal button.
+- Khối Subjects:
+  - Add subject + subject list.
+- Khối Reminder:
+  - Reminder time + status.
+- Khối Goal list:
+  - Render list goal item, có trạng thái active và detail-open.
+- Khối Goal detail panel:
+  - Set as active goal.
+  - Weekly targets grid (Monday-Sunday), mỗi dòng có checkbox + phút.
+  - Save weekly targets.
 
-### 15.6. Component guidelines
+### 15.6. Component behavior và interaction rules
 
-- Button:
-  - Primary: nền accent, chữ trắng.
-  - Secondary: nền trắng, viền xám nhẹ.
-  - Destructive: chữ đỏ, nền nhạt.
-- Input:
-  - Cao 42px, border mảnh, focus ring màu accent 2px.
-- Card:
-  - Nền trắng, bo góc 10, padding 16 hoặc 24.
-- Progress bar:
-  - Cao 8px, bo tròn đầy, có nhãn phần trăm rõ ràng.
+- View switching:
+  - Chỉ view active hiển thị, dùng animation reveal (fade + translateY).
+- Button system:
+  - Primary, secondary, danger, google, text-action.
+- Form controls:
+  - Input/select/textarea có focus ring màu accent.
+- Bảng/biểu đồ:
+  - History dùng table cố định cột.
+  - Dashboard/Onboarding dùng bars chart dạng cột.
+  - Statistics dùng cả bars, donut và matrix chart.
+- Modal:
+  - Dùng modal-overlay + modal-card cho quick edit subject/work mode.
 
-### 15.7. Chuyển động (motion)
+### 15.7. Accessibility và trạng thái hệ thống
 
-- Dùng chuyển động ít nhưng có chủ đích:
-  - Fade + slide nhẹ khi đổi màn hình (180ms).
-  - Stagger nhẹ cho card dashboard (60ms mỗi card).
-  - Không dùng animation lặp gây mất tập trung.
-
-### 15.8. Accessibility
-
-- Tương phản văn bản đạt tối thiểu WCAG AA.
-- Toàn bộ thao tác chính dùng được bằng bàn phím.
-- Focus state luôn hiển thị rõ trên button/input/link.
-- Không chỉ dùng màu để biểu đạt trạng thái (kèm icon hoặc nhãn).
-
-### 15.9. Empty/Error states
-
-- Empty dashboard: gợi ý tạo phiên học đầu tiên bằng CTA rõ ràng.
-- Empty history: hiển thị hướng dẫn lọc hoặc thêm phiên thủ công.
-- Empty onboarding goal: hiển thị form tạo goal đầu tiên, không hiển thị Quick Study.
-- Lỗi đồng bộ Supabase: thông báo ngắn, có nút thử lại, không chặn trải nghiệm offline.
+- Nav/button/input đều có trạng thái hover/focus/disabled rõ ràng.
+- Auth state ảnh hưởng trực tiếp layout:
+  - Chưa login: chỉ hiển thị login view.
+  - Đã login: hiển thị sidebar + topbar + các app view.
+- Mọi view quan trọng đều có status text để phản hồi thao tác.
 
 ## 16. Tiêu chuẩn phát triển dự án (code dễ đọc, dễ mở rộng)
 
