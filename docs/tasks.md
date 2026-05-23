@@ -316,7 +316,7 @@ Ghi chu trang thai:
 
 ## M4 - Chat luong, test, CI, release (3-5 ngay)
 
-[ ] TSK-4001 (P2) Unit tests cho core logic
+[x] TSK-4001 (P2) Unit tests cho core logic
 Phu thuoc: TSK-3003, TSK-3005
 Dau ra: test cho timer, streak, progress
 Checklist:
@@ -325,8 +325,12 @@ Checklist:
 - Streak calc
 Nghiem thu:
 - Unit test pass on local
+Ghi chu trang thai:
+- Da co test timer transitions trong src/features/timer/timerMachine.test.ts.
+- Da co test analytics streak/progress trong src/features/stats/analytics.test.ts.
+- Rust service tests progress/streak tiep tuc pass trong src-tauri/src/services/tests.rs.
 
-[ ] TSK-4002 (P2) Integration tests cho command + DB
+[x] TSK-4002 (P2) Integration tests cho command + DB
 Phu thuoc: TSK-2006
 Dau ra: test duong di du lieu frontend <-> command <-> DB
 Checklist:
@@ -334,8 +338,11 @@ Checklist:
 - Stats projection integration
 Nghiem thu:
 - Integration test pass
+Ghi chu trang thai:
+- Da bo sung command integration test trong src-tauri/src/commands/mod.rs.
+- Test cover luong create/list/update/delete goals/subjects/sessions va get_daily_stats.
 
-[ ] TSK-4003 (P2) E2E smoke cho 3 luong critical
+[x] TSK-4003 (P2) E2E smoke cho 3 luong critical
 Phu thuoc: TSK-3001, TSK-3002, TSK-3003
 Dau ra: test tu dong cho luong MVP can ban
 Checklist:
@@ -344,8 +351,11 @@ Checklist:
 - start/stop study session
 Nghiem thu:
 - E2E smoke pass o local CI-like run
+Ghi chu trang thai:
+- Da them smoke tests trong src/e2e/smokeFlows.test.tsx cho 3 luong critical.
+- Smoke tests chay pass trong vitest local.
 
-[ ] TSK-4004 (P2) Thiet lap CI pipeline
+[x] TSK-4004 (P2) Thiet lap CI pipeline
 Phu thuoc: TSK-4001, TSK-4002
 Dau ra: pipeline format/lint/test/build
 Checklist:
@@ -355,8 +365,12 @@ Checklist:
 - Build jobs Linux/Windows
 Nghiem thu:
 - Pipeline xanh tren branch chinh
+Ghi chu trang thai:
+- Da them workflow .github/workflows/ci.yml.
+- Co jobs frontend-quality, rust-quality, integration-tests, desktop-build (Linux/Windows matrix).
+- Da bo sung lint scripts trong package.json va rustfmt config src-tauri/rustfmt.toml.
 
-[ ] TSK-4005 (P2) Dat muc tieu coverage >= 80% cho core logic
+[x] TSK-4005 (P2) Dat muc tieu coverage >= 80% cho core logic
 Phu thuoc: TSK-4001, TSK-4002
 Dau ra: bao cao coverage
 Checklist:
@@ -364,8 +378,11 @@ Checklist:
 - Kiem tra nguong coverage
 Nghiem thu:
 - Coverage core logic >= 80%
+Ghi chu trang thai:
+- Da set coverage scope + threshold trong vite.config.ts cho core logic timerMachine + analytics.
+- Ket qua local npm run test:coverage: Stmts 91.54%, Branch 87.8%, Funcs 96.29%, Lines 92.53%.
 
-[ ] TSK-4006 (P3) Release checklist Linux/Windows
+[~] TSK-4006 (P3) Release checklist Linux/Windows
 Phu thuoc: TSK-4004
 Dau ra: release candidate MVP
 Checklist:
@@ -374,6 +391,10 @@ Checklist:
 - Smoke run tai moi platform
 Nghiem thu:
 - Co release candidate dat tieu chi go/no-go
+Ghi chu trang thai:
+- Linux deb artifact da verify local: src-tauri/target/release/bundle/deb/PomoTime_0.1.0_amd64.deb.
+- Da co CI build matrix Linux/Windows de tiep tuc verify build cross-platform.
+- Con can xac nhan artifact Windows (msi/nsis) va smoke run thuc te tren Windows.
 
 ## 4. Task song song de giam lead time
 

@@ -21,6 +21,16 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "html"],
       reportsDirectory: "coverage",
+      include: [
+        "src/features/timer/timerMachine.ts",
+        "src/features/stats/analytics.ts",
+      ],
+      thresholds: {
+        branches: 80,
+        functions: 80,
+        lines: 80,
+        statements: 80,
+      },
     },
   },
 });
