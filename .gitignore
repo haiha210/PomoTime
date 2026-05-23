@@ -7,3 +7,4 @@ src-tauri/target/
 Cargo.lock
 .env
 .env.local
+coverage/

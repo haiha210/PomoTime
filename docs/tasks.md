@@ -141,7 +141,7 @@ Nghiem thu:
 
 ## M2 - Data layer that su voi PostgreSQL + Tauri commands (4-6 ngay)
 
-[ ] TSK-2001 (P0) Chot schema PostgreSQL v1
+[x] TSK-2001 (P0) Chot schema PostgreSQL v1
 Phu thuoc: TSK-1002
 Dau ra: schema cho goals, weekly_targets, subjects, sessions
 Checklist:
@@ -149,6 +149,9 @@ Checklist:
 - Co created_at/updated_at voi bang can thiet
 Nghiem thu:
 - Schema pass tao moi tren DB trong
+Ghi chu trang thai:
+- Da tao migration: src-tauri/migrations/0001_init_postgres.sql
+- Da apply migration tren Docker Postgres local va xac nhan 4 bang duoc tao.
 
 [ ] TSK-2002 (P0) Tao migration runner PostgreSQL
 Phu thuoc: TSK-2001
@@ -329,7 +332,7 @@ Nghiem thu:
 
 [~] NOW-01 Hoan thanh TSK-0001 va TSK-0002
 [x] NOW-02 Hoan thanh TSK-1001 va TSK-1002
-[ ] NOW-03 Bat dau TSK-2001 de khoa schema v1
+[x] NOW-03 Bat dau TSK-2001 de khoa schema v1
 
 ## 6. Definition of Done cho moi task
 
