@@ -16,7 +16,8 @@ fn test_user_id(prefix: &str) -> String {
 }
 
 fn setup_context() -> RepositoryContext {
-  crate::database::initialize_database().expect("database migration should run before repository tests");
+  crate::database::initialize_database()
+    .expect("database migration should run before repository tests");
   RepositoryContext::from_env()
 }
 

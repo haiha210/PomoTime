@@ -145,7 +145,10 @@ impl GoalRepository {
   pub fn delete(&self, id: &str) -> Result<bool, String> {
     let mut client = connect(&self.database_url)?;
     let deleted = client
-      .execute("DELETE FROM learning_goals WHERE id = ($1::text)::uuid", &[&id])
+      .execute(
+        "DELETE FROM learning_goals WHERE id = ($1::text)::uuid",
+        &[&id],
+      )
       .map_err(|error| format!("failed to delete goal: {error}"))?;
 
     Ok(deleted > 0)

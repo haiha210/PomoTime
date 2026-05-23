@@ -30,11 +30,12 @@ impl TimerService {
     Self { session_repository }
   }
 
-  pub fn stop_timer_and_save_session(&self, input: StopTimerInput) -> Result<StopTimerResult, String> {
-    let duration_minutes = calculate_duration_minutes(
-      input.started_at_unix_seconds,
-      input.stopped_at_unix_seconds,
-    )?;
+  pub fn stop_timer_and_save_session(
+    &self,
+    input: StopTimerInput,
+  ) -> Result<StopTimerResult, String> {
+    let duration_minutes =
+      calculate_duration_minutes(input.started_at_unix_seconds, input.stopped_at_unix_seconds)?;
 
     let session = self.session_repository.create(CreateStudySessionInput {
       user_id: input.user_id,

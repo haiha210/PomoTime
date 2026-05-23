@@ -17,9 +17,9 @@ pub struct ProgressService;
 
 impl ProgressService {
   pub fn sum_studied_minutes(sessions: &[StudySession]) -> i32 {
-    sessions
-      .iter()
-      .fold(0_i32, |acc, session| acc.saturating_add(session.duration_minutes))
+    sessions.iter().fold(0_i32, |acc, session| {
+      acc.saturating_add(session.duration_minutes)
+    })
   }
 
   pub fn calculate_daily_progress(target_minutes: i32, studied_minutes: i32) -> DailyProgress {

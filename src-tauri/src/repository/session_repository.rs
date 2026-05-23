@@ -176,7 +176,10 @@ impl StudySessionRepository {
   pub fn delete(&self, id: &str) -> Result<bool, String> {
     let mut client = connect(&self.database_url)?;
     let deleted = client
-      .execute("DELETE FROM study_sessions WHERE id = ($1::text)::uuid", &[&id])
+      .execute(
+        "DELETE FROM study_sessions WHERE id = ($1::text)::uuid",
+        &[&id],
+      )
       .map_err(|error| format!("failed to delete study session: {error}"))?;
 
     Ok(deleted > 0)

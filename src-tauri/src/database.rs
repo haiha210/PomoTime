@@ -9,8 +9,7 @@ pub fn initialize_database() -> Result<(), String> {
 }
 
 pub fn resolve_database_url() -> String {
-  std::env::var("DATABASE_URL")
-    .unwrap_or_else(|_| DEFAULT_DATABASE_URL.to_string())
+  std::env::var("DATABASE_URL").unwrap_or_else(|_| DEFAULT_DATABASE_URL.to_string())
 }
 
 fn run_migrations(database_url: &str) -> Result<(), String> {

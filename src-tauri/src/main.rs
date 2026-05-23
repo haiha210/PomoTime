@@ -38,7 +38,9 @@ fn main() {
 
 fn is_migrations_only_mode() -> bool {
   matches!(
-    std::env::var("POMOTIME_RUN_MIGRATIONS_ONLY").ok().as_deref(),
+    std::env::var("POMOTIME_RUN_MIGRATIONS_ONLY")
+      .ok()
+      .as_deref(),
     Some("1")
   )
 }
