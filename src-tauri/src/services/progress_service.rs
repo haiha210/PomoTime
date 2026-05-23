@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 
-use chrono::{Duration, NaiveDate};
 #[cfg(test)]
 use chrono::Utc;
+use chrono::{Duration, NaiveDate};
 
 use crate::repository::StudySession;
 
