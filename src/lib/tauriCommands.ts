@@ -125,6 +125,30 @@ export interface StopTimerPayload {
   workMode: string;
 }
 
+export interface ManualSessionPayload {
+  userId: string;
+  goalId?: string;
+  subjectId?: string;
+  title: string;
+  note: string;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  workMode: string;
+}
+
+export interface UpdateSessionPayload {
+  id: string;
+  goalId?: string;
+  subjectId?: string;
+  title: string;
+  note: string;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  workMode: string;
+}
+
 export interface DailyStatsPayload {
   userId: string;
   date: string;
@@ -225,6 +249,36 @@ export const tauriCommands = {
 
   listSessions: (userId: string): Promise<ApiResponse<SessionRecord[]>> =>
     callCommand("list_sessions", { userId }),
+
+  addManualSession: (payload: ManualSessionPayload): Promise<ApiResponse<SessionRecord>> =>
+    callCommand("add_manual_session", {
+      input: {
+        user_id: payload.userId,
+        goal_id: payload.goalId ?? null,
+        subject_id: payload.subjectId ?? null,
+        title: payload.title,
+        note: payload.note,
+        start_time: payload.startTime,
+        end_time: payload.endTime,
+        duration_minutes: payload.durationMinutes,
+        work_mode: payload.workMode,
+      },
+    }),
+
+  updateSession: (payload: UpdateSessionPayload): Promise<ApiResponse<SessionRecord>> =>
+    callCommand("update_session", {
+      input: {
+        id: payload.id,
+        goal_id: payload.goalId ?? null,
+        subject_id: payload.subjectId ?? null,
+        title: payload.title,
+        note: payload.note,
+        start_time: payload.startTime,
+        end_time: payload.endTime,
+        duration_minutes: payload.durationMinutes,
+        work_mode: payload.workMode,
+      },
+    }),
 
   deleteSession: (id: string): Promise<ApiResponse<DeleteResult>> =>
     callCommand("delete_session", { id }),

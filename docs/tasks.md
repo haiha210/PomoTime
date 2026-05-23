@@ -285,7 +285,7 @@ Ghi chu trang thai:
 - Da implement UI timer start/pause/resume/stop va luu session vao DB khi stop.
 - Da them test timerMachine.test.ts cho do chinh xac duration khi pause/resume.
 
-[ ] TSK-3004 (P1) Hoan thien history CRUD + export
+[x] TSK-3004 (P1) Hoan thien history CRUD + export
 Phu thuoc: TSK-2006
 Dau ra: user quan ly lich su day du
 Checklist:
@@ -295,6 +295,10 @@ Checklist:
 - Export JSON/CSV
 Nghiem thu:
 - CRUD va export chay tu du lieu DB that
+Ghi chu trang thai:
+- Da them Tauri commands add_manual_session va update_session, dang ky invoke handler day du.
+- Da bo sung wrapper frontend trong src/lib/tauriCommands.ts cho add/update sessions.
+- Da nang cap History view voi filter date/subject/search, edit/delete, add manual session, export JSON/CSV.
 
 [ ] TSK-3005 (P1) Hoan thien dashboard + statistics
 Phu thuoc: TSK-3003, TSK-3004

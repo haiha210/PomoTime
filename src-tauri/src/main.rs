@@ -27,6 +27,8 @@ fn main() {
       commands::subject_commands::delete_subject,
       commands::session_commands::save_stopped_timer,
       commands::session_commands::list_sessions,
+      commands::session_commands::add_manual_session,
+      commands::session_commands::update_session,
       commands::session_commands::delete_session,
       commands::stats_commands::get_daily_stats,
     ])
