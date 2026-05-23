@@ -1,4 +1,6 @@
-#[derive(Debug, Clone, PartialEq, Eq)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Goal {
   pub id: String,
   pub user_id: String,
@@ -10,7 +12,7 @@ pub struct Goal {
   pub is_active: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateGoalInput {
   pub user_id: String,
   pub title: String,
@@ -21,7 +23,7 @@ pub struct CreateGoalInput {
   pub is_active: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateGoalInput {
   pub title: String,
   pub description: Option<String>,
@@ -31,7 +33,7 @@ pub struct UpdateGoalInput {
   pub is_active: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Subject {
   pub id: String,
   pub user_id: String,
@@ -39,20 +41,20 @@ pub struct Subject {
   pub color: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateSubjectInput {
   pub user_id: String,
   pub name: String,
   pub color: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateSubjectInput {
   pub name: String,
   pub color: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct WeeklyGoalTarget {
   pub id: String,
   pub goal_id: String,
@@ -60,20 +62,20 @@ pub struct WeeklyGoalTarget {
   pub target_minutes: i32,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateWeeklyGoalTargetInput {
   pub goal_id: String,
   pub weekday: i16,
   pub target_minutes: i32,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateWeeklyGoalTargetInput {
   pub weekday: i16,
   pub target_minutes: i32,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StudySession {
   pub id: String,
   pub user_id: String,
@@ -87,7 +89,7 @@ pub struct StudySession {
   pub work_mode: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateStudySessionInput {
   pub user_id: String,
   pub goal_id: Option<String>,
@@ -100,7 +102,7 @@ pub struct CreateStudySessionInput {
   pub work_mode: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateStudySessionInput {
   pub goal_id: Option<String>,
   pub subject_id: Option<String>,

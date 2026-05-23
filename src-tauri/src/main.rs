@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod commands;
 mod database;
 mod repository;
 mod services;
@@ -12,6 +13,20 @@ fn main() {
   }
 
   tauri::Builder::default()
+    .invoke_handler(tauri::generate_handler![
+      commands::goal_commands::create_goal,
+      commands::goal_commands::list_goals,
+      commands::goal_commands::update_goal,
+      commands::goal_commands::delete_goal,
+      commands::subject_commands::create_subject,
+      commands::subject_commands::list_subjects,
+      commands::subject_commands::update_subject,
+      commands::subject_commands::delete_subject,
+      commands::session_commands::save_stopped_timer,
+      commands::session_commands::list_sessions,
+      commands::session_commands::delete_session,
+      commands::stats_commands::get_daily_stats,
+    ])
     .run(tauri::generate_context!())
     .expect("error while running PomoTime app");
 }

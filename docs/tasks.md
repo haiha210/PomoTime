@@ -194,7 +194,7 @@ Ghi chu trang thai:
 - Da them service layer trong src-tauri/src/services/ (auth_state_service, timer_service, progress_service).
 - Da them test cho use-case auth sync, timer stop->save session, daily progress va streak.
 
-[ ] TSK-2005 (P1) Tao Tauri commands contracts
+[x] TSK-2005 (P1) Tao Tauri commands contracts
 Phu thuoc: TSK-2004
 Dau ra: command input/output ro rang
 Checklist:
@@ -204,6 +204,10 @@ Checklist:
 - stats commands
 Nghiem thu:
 - Frontend goi command thanh cong cho cac luong chinh
+Ghi chu trang thai:
+- Da them command layer trong src-tauri/src/commands cho goals/subjects/sessions/stats.
+- Da dang ky invoke_handler trong main.rs voi command contracts ro rang.
+- Da them frontend wrapper src/lib/tauriCommands.ts va unit tests cho mapping payload command.
 
 [ ] TSK-2006 (P1) Migrate persistence tu localStorage sang PostgreSQL
 Phu thuoc: TSK-2005
