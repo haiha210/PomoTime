@@ -5,9 +5,11 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 
 function run(command, args, goal) {
+  // shell: true on Windows lets spawnSync find .cmd shims like node_modules\.bin\tauri.cmd
   const result = spawnSync(command, args, {
     stdio: "inherit",
     cwd: process.cwd(),
+    shell: process.platform === "win32",
   });
 
   if (result.error) {
