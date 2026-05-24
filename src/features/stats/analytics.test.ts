@@ -3,10 +3,15 @@ import { describe, expect, it } from "vitest";
 import type { SessionRecord } from "../../lib/tauriCommands";
 
 import {
+  filterSessionsByDates,
+  isoDateFromTimestamp,
   averageMinutesPerSession,
   buildRecentIsoDates,
   calculateAchievedDays,
   calculateCurrentStreak,
+  targetForDate,
+  totalMinutesForDates,
+  weekdayFromIsoDate,
   sumMinutesByDate,
 } from "./analytics";
 
@@ -78,5 +83,31 @@ describe("stats analytics", () => {
     expect(achievedDays).toBe(3);
 
     expect(averageMinutesPerSession(sessions)).toBeCloseTo(45, 5);
+  });
+
+  it("covers analytics fallback branches for invalid and empty inputs", () => {
+    expect(isoDateFromTimestamp("invalid-timestamp")).toBe("invalid-ti");
+    expect(weekdayFromIsoDate("2026-05-24")).toBe(7);
+
+    const oneDateRange = buildRecentIsoDates(0, "2026-05-24");
+    expect(oneDateRange).toEqual(["2026-05-24"]);
+
+    const withNegativeDuration: SessionRecord[] = [
+      {
+        ...sessions[0],
+        id: "s-neg",
+        duration_minutes: -15,
+      },
+    ];
+    const studiedByDate = sumMinutesByDate(withNegativeDuration);
+    expect(studiedByDate["2026-05-20"]).toBe(0);
+
+    expect(totalMinutesForDates(studiedByDate, ["2026-05-24"])).toBe(0);
+    expect(targetForDate({}, "2026-05-24")).toBe(0);
+    expect(calculateCurrentStreak({}, "2026-05-24")).toBe(0);
+    expect(calculateAchievedDays(studiedByDate, {}, ["2026-05-20"])).toBe(0);
+    expect(averageMinutesPerSession(withNegativeDuration)).toBe(0);
+
+    expect(filterSessionsByDates(sessions, ["2026-05-21"])).toHaveLength(1);
   });
 });
