@@ -34,7 +34,7 @@
       "icons/128x128@2x.png",
       "icons/icon.ico"
     ],
-    "targets": ["deb"],
+    "targets": "all",
     "windows": {
       "webviewInstallMode": {
         "type": "downloadBootstrapper"

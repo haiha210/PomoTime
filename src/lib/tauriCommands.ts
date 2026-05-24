@@ -1,3 +1,5 @@
+import { getSupabaseClient } from "../core/supabase/client";
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -549,6 +551,364 @@ function webPreviewCommand<T>(command: string, args?: InvokeArguments): ApiRespo
   }
 }
 
+async function supabaseCommand<T>(
+  command: string,
+  args?: InvokeArguments
+): Promise<ApiResponse<T>> {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    return { success: false, error: "Supabase client is not configured" };
+  }
+
+  const input = (args as { input?: Record<string, unknown> } | undefined)?.input || {};
+  const wrapError = (error: unknown): ApiResponse<T> => ({
+    success: false,
+    error: error instanceof Error ? error.message : String(error ?? "unknown error"),
+  });
+
+  try {
+    switch (command) {
+      case "create_goal": {
+        const userId = String(input.user_id || "");
+        const isActive = Boolean(input.is_active);
+
+        if (isActive) {
+          const { error: deactivateError } = await supabase
+            .from("learning_goals")
+            .update({ is_active: false, updated_at: new Date().toISOString() })
+            .eq("user_id", userId)
+            .eq("is_active", true);
+          if (deactivateError) return wrapError(deactivateError);
+        }
+
+        const { data, error } = await supabase
+          .from("learning_goals")
+          .insert({
+            user_id: userId,
+            title: String(input.title || "Untitled goal"),
+            description: (input.description as string | null) ?? null,
+            goal_type: String(input.goal_type || "custom"),
+            start_date: String(input.start_date || toLocalIsoDate(new Date())),
+            end_date: String(input.end_date || toLocalIsoDate(new Date())),
+            is_active: isActive,
+          })
+          .select()
+          .single();
+        if (error) return wrapError(error);
+        return { success: true, data: data as T };
+      }
+
+      case "list_goals": {
+        const userId = String((args as { userId?: string } | undefined)?.userId || "");
+        const { data, error } = await supabase
+          .from("learning_goals")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false });
+        if (error) return wrapError(error);
+        return { success: true, data: (data ?? []) as T };
+      }
+
+      case "update_goal": {
+        const goalId = String(input.id || "");
+        const { data: current, error: fetchError } = await supabase
+          .from("learning_goals")
+          .select("*")
+          .eq("id", goalId)
+          .single();
+        if (fetchError) return wrapError(fetchError);
+        if (!current) return { success: false, error: `Goal not found: ${goalId}` };
+
+        const nextActive = Boolean(input.is_active ?? current.is_active);
+        if (nextActive) {
+          const { error: deactivateError } = await supabase
+            .from("learning_goals")
+            .update({ is_active: false, updated_at: new Date().toISOString() })
+            .eq("user_id", current.user_id)
+            .neq("id", goalId)
+            .eq("is_active", true);
+          if (deactivateError) return wrapError(deactivateError);
+        }
+
+        const { data, error } = await supabase
+          .from("learning_goals")
+          .update({
+            title: String(input.title ?? current.title),
+            description:
+              input.description === undefined
+                ? current.description
+                : ((input.description as string | null) ?? null),
+            goal_type: String(input.goal_type ?? current.goal_type),
+            start_date: String(input.start_date ?? current.start_date),
+            end_date: String(input.end_date ?? current.end_date),
+            is_active: nextActive,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", goalId)
+          .select()
+          .single();
+        if (error) return wrapError(error);
+        return { success: true, data: data as T };
+      }
+
+      case "delete_goal": {
+        const goalId = String((args as { id?: string } | undefined)?.id || "");
+        const { error } = await supabase.from("learning_goals").delete().eq("id", goalId);
+        if (error) return wrapError(error);
+        return { success: true, data: { deleted: true } as T };
+      }
+
+      case "set_active_goal": {
+        const goalId = String((args as { goalId?: string } | undefined)?.goalId || "");
+        const { data: target, error: fetchError } = await supabase
+          .from("learning_goals")
+          .select("*")
+          .eq("id", goalId)
+          .single();
+        if (fetchError) return wrapError(fetchError);
+        if (!target) return { success: false, error: `Goal not found: ${goalId}` };
+
+        const nowIso = new Date().toISOString();
+        const { error: deactivateError } = await supabase
+          .from("learning_goals")
+          .update({ is_active: false, updated_at: nowIso })
+          .eq("user_id", target.user_id)
+          .neq("id", goalId)
+          .eq("is_active", true);
+        if (deactivateError) return wrapError(deactivateError);
+
+        const { data, error } = await supabase
+          .from("learning_goals")
+          .update({ is_active: true, updated_at: nowIso })
+          .eq("id", goalId)
+          .select()
+          .single();
+        if (error) return wrapError(error);
+        return { success: true, data: data as T };
+      }
+
+      case "list_weekly_targets": {
+        const goalId = String((args as { goalId?: string } | undefined)?.goalId || "");
+        const { data, error } = await supabase
+          .from("weekly_goal_targets")
+          .select("*")
+          .eq("goal_id", goalId)
+          .order("weekday", { ascending: true });
+        if (error) return wrapError(error);
+        return { success: true, data: (data ?? []) as T };
+      }
+
+      case "upsert_weekly_target": {
+        const goalId = String(input.goal_id || "");
+        const weekday = Number(input.weekday || 0);
+        const targetMinutes = Math.max(0, Math.floor(Number(input.target_minutes || 0)));
+
+        const { data, error } = await supabase
+          .from("weekly_goal_targets")
+          .upsert(
+            {
+              goal_id: goalId,
+              weekday,
+              target_minutes: targetMinutes,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "goal_id,weekday" }
+          )
+          .select()
+          .single();
+        if (error) return wrapError(error);
+        return { success: true, data: data as T };
+      }
+
+      case "create_subject": {
+        const { data, error } = await supabase
+          .from("subjects")
+          .insert({
+            user_id: String(input.user_id || ""),
+            name: String(input.name || "General"),
+            color: (input.color as string | null) ?? null,
+          })
+          .select()
+          .single();
+        if (error) return wrapError(error);
+        return { success: true, data: data as T };
+      }
+
+      case "list_subjects": {
+        const userId = String((args as { userId?: string } | undefined)?.userId || "");
+        const { data, error } = await supabase
+          .from("subjects")
+          .select("*")
+          .eq("user_id", userId)
+          .order("name", { ascending: true });
+        if (error) return wrapError(error);
+        return { success: true, data: (data ?? []) as T };
+      }
+
+      case "update_subject": {
+        const subjectId = String(input.id || "");
+        const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+        if (input.name !== undefined) patch.name = String(input.name);
+        if (input.color !== undefined) patch.color = (input.color as string | null) ?? null;
+
+        const { data, error } = await supabase
+          .from("subjects")
+          .update(patch)
+          .eq("id", subjectId)
+          .select()
+          .single();
+        if (error) return wrapError(error);
+        return { success: true, data: data as T };
+      }
+
+      case "delete_subject": {
+        const subjectId = String((args as { id?: string } | undefined)?.id || "");
+        const { error } = await supabase.from("subjects").delete().eq("id", subjectId);
+        if (error) return wrapError(error);
+        return { success: true, data: { deleted: true } as T };
+      }
+
+      case "save_stopped_timer": {
+        const startedAtUnixSeconds = Math.floor(Number(input.started_at_unix_seconds || 0));
+        const stoppedAtUnixSeconds = Math.floor(
+          Number(input.stopped_at_unix_seconds || startedAtUnixSeconds)
+        );
+        const durationMinutes = Math.max(
+          1,
+          Math.floor(Math.max(0, stoppedAtUnixSeconds - startedAtUnixSeconds) / 60)
+        );
+        const fallbackStart = new Date(startedAtUnixSeconds * 1000).toISOString();
+        const fallbackEnd = new Date(stoppedAtUnixSeconds * 1000).toISOString();
+
+        const { data, error } = await supabase
+          .from("study_sessions")
+          .insert({
+            user_id: String(input.user_id || ""),
+            goal_id: input.goal_id ? String(input.goal_id) : null,
+            subject_id: input.subject_id ? String(input.subject_id) : null,
+            title: String(input.title || "Study session"),
+            note: String(input.note || ""),
+            start_time: String(input.start_time || fallbackStart),
+            end_time: String(input.end_time || fallbackEnd),
+            duration_minutes: durationMinutes,
+            work_mode: String(input.work_mode || "focus_clock"),
+          })
+          .select()
+          .single();
+        if (error) return wrapError(error);
+        return { success: true, data: data as T };
+      }
+
+      case "list_sessions": {
+        const userId = String((args as { userId?: string } | undefined)?.userId || "");
+        const { data, error } = await supabase
+          .from("study_sessions")
+          .select("*")
+          .eq("user_id", userId)
+          .order("start_time", { ascending: false });
+        if (error) return wrapError(error);
+        return { success: true, data: (data ?? []) as T };
+      }
+
+      case "add_manual_session": {
+        const durationMinutes = Math.max(1, Math.floor(Number(input.duration_minutes || 0)));
+        const { data, error } = await supabase
+          .from("study_sessions")
+          .insert({
+            user_id: String(input.user_id || ""),
+            goal_id: input.goal_id ? String(input.goal_id) : null,
+            subject_id: input.subject_id ? String(input.subject_id) : null,
+            title: String(input.title || "Manual session"),
+            note: String(input.note || ""),
+            start_time: String(input.start_time || new Date().toISOString()),
+            end_time: String(input.end_time || new Date().toISOString()),
+            duration_minutes: durationMinutes,
+            work_mode: String(input.work_mode || "focus_clock"),
+          })
+          .select()
+          .single();
+        if (error) return wrapError(error);
+        return { success: true, data: data as T };
+      }
+
+      case "update_session": {
+        const sessionId = String(input.id || "");
+        const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+        if (input.goal_id !== undefined) {
+          patch.goal_id = input.goal_id ? String(input.goal_id) : null;
+        }
+        if (input.subject_id !== undefined) {
+          patch.subject_id = input.subject_id ? String(input.subject_id) : null;
+        }
+        if (input.title !== undefined) patch.title = String(input.title);
+        if (input.note !== undefined) patch.note = String(input.note);
+        if (input.start_time !== undefined) patch.start_time = String(input.start_time);
+        if (input.end_time !== undefined) patch.end_time = String(input.end_time);
+        if (input.duration_minutes !== undefined) {
+          patch.duration_minutes = Math.max(1, Math.floor(Number(input.duration_minutes)));
+        }
+        if (input.work_mode !== undefined) patch.work_mode = String(input.work_mode);
+
+        const { data, error } = await supabase
+          .from("study_sessions")
+          .update(patch)
+          .eq("id", sessionId)
+          .select()
+          .single();
+        if (error) return wrapError(error);
+        return { success: true, data: data as T };
+      }
+
+      case "delete_session": {
+        const sessionId = String((args as { id?: string } | undefined)?.id || "");
+        const { error } = await supabase.from("study_sessions").delete().eq("id", sessionId);
+        if (error) return wrapError(error);
+        return { success: true, data: { deleted: true } as T };
+      }
+
+      case "get_daily_stats": {
+        const userId = String(input.user_id || "");
+        const date = String(input.date || toLocalIsoDate(new Date()));
+        const targetMinutes = Math.max(0, Math.floor(Number(input.target_minutes || 0)));
+
+        const { data: sessions, error } = await supabase
+          .from("study_sessions")
+          .select("start_time, duration_minutes")
+          .eq("user_id", userId);
+        if (error) return wrapError(error);
+
+        const rows = (sessions ?? []) as Array<{ start_time: string; duration_minutes: number }>;
+        const studiedMinutes = rows
+          .filter((row) => toIsoDateKey(row.start_time) === date)
+          .reduce((sum, row) => sum + Math.max(0, row.duration_minutes), 0);
+
+        const dateSet = new Set(
+          rows
+            .filter((row) => row.duration_minutes > 0)
+            .map((row) => toIsoDateKey(row.start_time))
+        );
+
+        const data: DailyStatsRecord = {
+          date,
+          target_minutes: targetMinutes,
+          studied_minutes: studiedMinutes,
+          remaining_minutes: Math.max(0, targetMinutes - studiedMinutes),
+          progress_ratio: targetMinutes === 0 ? 0 : Math.min(1, studiedMinutes / targetMinutes),
+          is_target_reached: targetMinutes > 0 && studiedMinutes >= targetMinutes,
+          streak: calculateStreakFromDateSet(dateSet, date),
+        };
+
+        return { success: true, data: data as T };
+      }
+
+      default:
+        return { success: false, error: `Unsupported command: ${command}` };
+    }
+  } catch (error) {
+    return wrapError(error);
+  }
+}
+
 function getTauriInvoke(): TauriInvoke | null {
   return window.__TAURI__?.core?.invoke ?? null;
 }
@@ -561,8 +921,11 @@ async function callCommand<T>(
   command: string,
   args?: InvokeArguments
 ): Promise<ApiResponse<T>> {
-  const invoke = getTauriInvoke();
+  if (getSupabaseClient()) {
+    return supabaseCommand<T>(command, args);
+  }
 
+  const invoke = getTauriInvoke();
   if (!invoke) {
     return webPreviewCommand<T>(command, args);
   }

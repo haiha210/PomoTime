@@ -6,12 +6,17 @@ mod repository;
 mod services;
 
 fn main() {
-  database::initialize_database().expect("failed to initialize PostgreSQL schema");
-
   if is_migrations_only_mode() {
+    if let Err(error) = database::initialize_database() {
+      eprintln!("migration run failed: {error}");
+      std::process::exit(1);
+    }
     return;
   }
 
+  // Skip DB connection at startup; frontend talks to Supabase directly.
+  // Keep the postgres command handlers registered for the migrations-only path
+  // and any future local-Postgres usage, but do not require Postgres to launch.
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![
       commands::goal_commands::create_goal,

@@ -1,8 +1,36 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { tauriCommands, type GoalRecord, type SubjectRecord } from "../../lib/tauriCommands";
+import { playPhaseEndChime } from "../../shared/utils/timerSound";
 
-import { useTimerStateMachine } from "./useTimerStateMachine";
+import { useTimerStateMachine, type PhaseTransitionEvent } from "./useTimerStateMachine";
+
+const SOUND_PREF_KEY = "pomotime.timer.soundEnabled";
+const BREAK_PREF_KEY = "pomotime.timer.breakMinutes";
+const WORK_PREF_KEY = "pomotime.timer.workMinutes";
+
+function readNumberPref(key: string, fallback: number): number {
+  if (typeof localStorage === "undefined") {
+    return fallback;
+  }
+  const raw = localStorage.getItem(key);
+  if (raw === null) {
+    return fallback;
+  }
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function readBoolPref(key: string, fallback: boolean): boolean {
+  if (typeof localStorage === "undefined") {
+    return fallback;
+  }
+  const raw = localStorage.getItem(key);
+  if (raw === null) {
+    return fallback;
+  }
+  return raw === "true";
+}
 
 interface TimerViewProps {
   userId: string;
@@ -22,15 +50,68 @@ function formatClock(totalSeconds: number): string {
 }
 
 export function TimerView({ userId }: TimerViewProps): React.JSX.Element {
-  const timer = useTimerStateMachine();
   const [goals, setGoals] = useState<GoalRecord[]>([]);
   const [subjects, setSubjects] = useState<SubjectRecord[]>([]);
   const [selectedGoalId, setSelectedGoalId] = useState("none");
   const [selectedSubjectId, setSelectedSubjectId] = useState("none");
-  const [tomatoMinutes, setTomatoMinutes] = useState(25);
+  const [tomatoMinutes, setTomatoMinutes] = useState(() => readNumberPref(WORK_PREF_KEY, 25));
+  const [breakMinutes, setBreakMinutes] = useState(() => readNumberPref(BREAK_PREF_KEY, 5));
+  const [soundEnabled, setSoundEnabled] = useState(() => readBoolPref(SOUND_PREF_KEY, true));
   const [title, setTitle] = useState("Deep work block");
   const [note, setNote] = useState("");
   const [status, setStatus] = useState("Timer is ready.");
+
+  const handlePhaseTransition = useCallback(
+    (event: PhaseTransitionEvent) => {
+      if (soundEnabled) {
+        playPhaseEndChime();
+      }
+
+      if (event.endedPhase === "work" && event.workSessionWindow) {
+        const window = event.workSessionWindow;
+        void tauriCommands
+          .saveStoppedTimer({
+            userId,
+            goalId: selectedGoalId === "none" ? undefined : selectedGoalId,
+            subjectId: selectedSubjectId === "none" ? undefined : selectedSubjectId,
+            title: title.trim() || "Study session",
+            note,
+            startTime: new Date(window.startedAtUnixSeconds * 1000).toISOString(),
+            endTime: new Date(window.stoppedAtUnixSeconds * 1000).toISOString(),
+            startedAtUnixSeconds: window.startedAtUnixSeconds,
+            stoppedAtUnixSeconds: window.stoppedAtUnixSeconds,
+            workMode: "pomodoro",
+          })
+          .then((response) => {
+            if (!response.success) {
+              setStatus(response.error || "Failed to auto-save tomato session.");
+              return;
+            }
+            const minutes = Math.round(window.activeSeconds / 60);
+            setStatus(
+              event.startedPhase === "break"
+                ? `Tomato done (${minutes}m). Break time started.`
+                : `Tomato done (${minutes}m). Back to idle.`
+            );
+          })
+          .catch((error) => {
+            setStatus(error instanceof Error ? error.message : "Failed to auto-save tomato session.");
+          });
+        return;
+      }
+
+      if (event.endedPhase === "break") {
+        setStatus("Break is over. Ready for the next tomato.");
+      }
+    },
+    [note, selectedGoalId, selectedSubjectId, soundEnabled, title, userId]
+  );
+
+  const timer = useTimerStateMachine({
+    onPhaseTransition: handlePhaseTransition,
+    initialWorkMinutes: tomatoMinutes,
+    initialBreakMinutes: breakMinutes,
+  });
 
   const selectedGoal = useMemo(
     () => goals.find((goal) => goal.id === selectedGoalId) || null,
@@ -54,6 +135,21 @@ export function TimerView({ userId }: TimerViewProps): React.JSX.Element {
   }, [timer.state.displaySeconds, timer.state.mode, timer.state.status]);
 
   const timerModeValue = timer.state.mode === "pomodoro" ? "tomato" : "focus_clock";
+
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(WORK_PREF_KEY, String(tomatoMinutes));
+  }, [tomatoMinutes]);
+
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(BREAK_PREF_KEY, String(breakMinutes));
+  }, [breakMinutes]);
+
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(SOUND_PREF_KEY, String(soundEnabled));
+  }, [soundEnabled]);
 
   useEffect(() => {
     let active = true;
@@ -181,26 +277,57 @@ export function TimerView({ userId }: TimerViewProps): React.JSX.Element {
         </label>
 
         {timerModeValue === "tomato" ? (
-          <label className="field" id="tomato-length-field">
-            Tomato length (minutes)
-            <input
-              id="tomato-minutes"
-              type="number"
-              value={tomatoMinutes}
-              min={1}
-              max={180}
-              step={1}
-              disabled={timer.state.status !== "idle"}
-              onChange={(event) => {
-                const parsed = Number(event.target.value || 25);
-                const normalized = Math.max(1, Math.min(180, Math.floor(parsed)));
-                setTomatoMinutes(normalized);
-                timer.setPomodoroMinutes(normalized);
-              }}
-            />
-          </label>
+          <>
+            <label className="field" id="tomato-length-field">
+              Tomato length (minutes)
+              <input
+                id="tomato-minutes"
+                type="number"
+                value={tomatoMinutes}
+                min={1}
+                max={180}
+                step={1}
+                disabled={timer.state.status !== "idle"}
+                onChange={(event) => {
+                  const parsed = Number(event.target.value || 25);
+                  const normalized = Math.max(1, Math.min(180, Math.floor(parsed)));
+                  setTomatoMinutes(normalized);
+                  timer.setPomodoroMinutes(normalized);
+                }}
+              />
+            </label>
+
+            <label className="field" id="break-length-field">
+              Break length (minutes)
+              <input
+                id="break-minutes"
+                type="number"
+                value={breakMinutes}
+                min={0}
+                max={60}
+                step={1}
+                disabled={timer.state.status !== "idle"}
+                onChange={(event) => {
+                  const parsed = Number(event.target.value || 0);
+                  const normalized = Math.max(0, Math.min(60, Math.floor(parsed)));
+                  setBreakMinutes(normalized);
+                  timer.setBreakMinutes(normalized);
+                }}
+              />
+            </label>
+          </>
         ) : null}
       </div>
+
+      <label className="field" style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <input
+          id="timer-sound-toggle"
+          type="checkbox"
+          checked={soundEnabled}
+          onChange={(event) => setSoundEnabled(event.target.checked)}
+        />
+        Play chime when each phase ends
+      </label>
 
       <div className={["timer", "timer-face", quickStartStateClass].filter(Boolean).join(" ")} id="timer-display" data-testid="timer-display">
         {formatClock(timer.state.displaySeconds)}
@@ -208,7 +335,11 @@ export function TimerView({ userId }: TimerViewProps): React.JSX.Element {
 
       <p className="helper" id="timer-mode-hint">
         {timerModeValue === "tomato"
-          ? "Tomato Sprint counts down from selected minutes."
+          ? timer.state.phase === "break"
+            ? "Break in progress — take a breath. The clock returns to idle when it ends."
+            : `Tomato Sprint counts down from ${tomatoMinutes} min.${
+                breakMinutes > 0 ? ` Auto break of ${breakMinutes} min follows.` : ""
+              }`
           : "Focus Clock counts up from zero while you study."}
       </p>
 

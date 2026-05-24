@@ -10,6 +10,8 @@
     "dev": "tauri dev",
     "build": "node scripts/build-desktop.cjs",
     "build:deb": "node scripts/build-desktop.cjs",
+    "build:windows": "node scripts/build-desktop.cjs",
+    "build:windows:docker": "bash scripts/build-windows-docker.sh",
     "tauri": "tauri",
     "hooks:install": "git config core.hooksPath .githooks",
     "prepush:check": "cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check && npm run test:all",
@@ -42,6 +44,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.1",
+    "lucide-react": "^1.16.0",
     "react": "^19.2.6",
     "react-datepicker": "^9.1.0",
     "react-dom": "^19.2.6",

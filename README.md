@@ -60,6 +60,38 @@ You can install it directly with:
 sudo dpkg -i src-tauri/target/release/bundle/deb/PomoTime_0.1.0_amd64.deb
 ```
 
+### Cross-build Windows from Linux via Docker
+
+If you do not have a Windows host, you can build the NSIS `.exe` installer from Linux/WSL using Docker:
+
+```bash
+npm run build:windows:docker
+```
+
+This builds the image at `docker/windows-build.Dockerfile` (Rust + Node 22 + `cargo-xwin` + NSIS) and produces:
+
+```
+src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*-setup.exe
+```
+
+Notes:
+- Requires Docker installed on the host.
+- First run downloads the MSVC SDK via `cargo-xwin` (~700 MB) and caches it in a named volume.
+- Only the NSIS bundle is produced. MSI requires WiX which only runs on Windows; build MSI on a Windows host or via the GitHub Actions `desktop-build (windows-latest)` job.
+
+### Build on a Windows host
+
+On Windows, run the same `npm run build` (or `npm run build:windows`) from a Windows host. It produces both an NSIS `.exe` and an MSI installer:
+
+- `src-tauri\target\release\bundle\nsis\PomoTime_0.1.0_x64-setup.exe`
+- `src-tauri\target\release\bundle\msi\PomoTime_0.1.0_x64_en-US.msi`
+
+Windows prerequisites:
+
+- Visual Studio Build Tools with the "Desktop development with C++" workload (provides the MSVC toolchain).
+- WebView2 runtime (Tauri's `downloadBootstrapper` mode auto-installs it during setup).
+- WiX Toolset is downloaded by Tauri on first MSI build; no manual install needed.
+
 ## NPM Scripts
 
 - npm run dev: start Tauri in development mode

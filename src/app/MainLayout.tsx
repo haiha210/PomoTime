@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
+import {
+  Home,
+  LayoutDashboard,
+  Timer,
+  History,
+  Target,
+  LogOut,
+  Menu,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 
 import type { AuthSession } from "../features/auth/authTypes";
 import { tauriCommands, type SessionRecord } from "../lib/tauriCommands";
@@ -11,12 +22,12 @@ interface MainLayoutProps {
   onLogout(): void;
 }
 
-const navItems = [
-  { to: "/onboarding", label: "Onboarding", icon: "⌂" },
-  { to: "/dashboard", label: "Dashboard", icon: "◫" },
-  { to: "/timer", label: "Session Timer", icon: "◷" },
-  { to: "/history", label: "History", icon: "≣" },
-  { to: "/goals", label: "Goal Settings", icon: "◎" },
+const navItems: Array<{ to: string; label: string; icon: LucideIcon }> = [
+  { to: "/onboarding", label: "Onboarding", icon: Home },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/timer", label: "Session Timer", icon: Timer },
+  { to: "/history", label: "History", icon: History },
+  { to: "/goals", label: "Goal Settings", icon: Target },
 ];
 
 function isoDateFromTimestamp(timestamp: string): string {
@@ -128,18 +139,21 @@ export function MainLayout({ commandStatus, session, onLogout }: MainLayoutProps
         </div>
 
         <nav className="nav-list">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => (isActive ? "nav-btn active" : "nav-btn")}
-            >
-              <span className="nav-icon" aria-hidden="true">
-                {item.icon}
-              </span>
-              <span className="nav-label">{item.label}</span>
-            </NavLink>
-          ))}
+          {navItems.map((item) => {
+            const ItemIcon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => (isActive ? "nav-btn active" : "nav-btn")}
+              >
+                <span className="nav-icon" aria-hidden="true">
+                  <ItemIcon size={18} strokeWidth={2} />
+                </span>
+                <span className="nav-label">{item.label}</span>
+              </NavLink>
+            );
+          })}
         </nav>
 
         <div className="sidebar-foot">
@@ -149,7 +163,7 @@ export function MainLayout({ commandStatus, session, onLogout }: MainLayoutProps
           <div className="btn-row" style={{ marginTop: "10px" }}>
             <button className="btn secondary sidebar-auth-btn" type="button" onClick={onLogout}>
               <span className="sidebar-auth-icon" aria-hidden="true">
-                ↩
+                <LogOut size={16} strokeWidth={2} />
               </span>
               <span className="sidebar-auth-label">Logout</span>
             </button>
@@ -165,7 +179,9 @@ export function MainLayout({ commandStatus, session, onLogout }: MainLayoutProps
               type="button"
               onClick={() => setIsSidebarHidden((current) => !current)}
             >
-              <span aria-hidden="true">{isSidebarHidden ? "☰" : "✕"}</span>
+              <span aria-hidden="true" style={{ display: "inline-flex" }}>
+                {isSidebarHidden ? <Menu size={16} strokeWidth={2} /> : <X size={16} strokeWidth={2} />}
+              </span>
               <span>{isSidebarHidden ? "Show sidebar" : "Hide sidebar"}</span>
             </button>
 

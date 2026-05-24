@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   frontend-quality:
@@ -152,5 +153,20 @@ jobs:
       - name: Build frontend assets
         run: npm run build:web
 
-      - name: Desktop compile smoke
+      - name: Desktop compile smoke (Linux)
+        if: matrix.os == 'ubuntu-latest'
         run: cargo check --manifest-path src-tauri/Cargo.toml
+
+      - name: Build Windows installers (nsis + msi)
+        if: matrix.os == 'windows-latest'
+        run: npm run build
+
+      - name: Upload Windows installers
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pomotime-windows-installers
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/msi/*.msi
+          if-no-files-found: error

@@ -28,12 +28,16 @@ function ensureCommandAvailable(command) {
   return check.status === 0;
 }
 
-function newestDeb(debDir) {
-  const debFiles = fs
-    .readdirSync(debDir)
-    .filter((fileName) => fileName.endsWith(".deb"))
+function newestArtifact(dir, extension) {
+  if (!fs.existsSync(dir)) {
+    return null;
+  }
+
+  const files = fs
+    .readdirSync(dir)
+    .filter((fileName) => fileName.toLowerCase().endsWith(extension))
     .map((fileName) => {
-      const fullPath = path.join(debDir, fileName);
+      const fullPath = path.join(dir, fileName);
       return {
         fileName,
         fullPath,
@@ -42,7 +46,7 @@ function newestDeb(debDir) {
     })
     .sort((left, right) => right.mtimeMs - left.mtimeMs);
 
-  return debFiles[0] || null;
+  return files[0] || null;
 }
 
 function buildLinuxDeb() {
@@ -57,7 +61,7 @@ function buildLinuxDeb() {
     throw new Error(`Deb output directory not found: ${debDir}`);
   }
 
-  const latestDeb = newestDeb(debDir);
+  const latestDeb = newestArtifact(debDir, ".deb");
   if (!latestDeb) {
     throw new Error(`No .deb file was generated in ${debDir}`);
   }
@@ -73,9 +77,40 @@ function buildLinuxDeb() {
   console.log(`Install with: sudo dpkg -i ${relativeDebPath}`);
 }
 
+function buildWindowsInstallers() {
+  run("tauri", ["build", "--bundles", "nsis,msi"], "Windows installer build");
+
+  const bundleDir = path.join(process.cwd(), "src-tauri", "target", "release", "bundle");
+  const artifacts = [
+    { label: "NSIS", dir: path.join(bundleDir, "nsis"), ext: ".exe" },
+    { label: "MSI", dir: path.join(bundleDir, "msi"), ext: ".msi" },
+  ];
+
+  let producedAny = false;
+  for (const artifact of artifacts) {
+    const latest = newestArtifact(artifact.dir, artifact.ext);
+    if (!latest) {
+      console.warn(`No ${artifact.label} artifact found in ${artifact.dir}`);
+      continue;
+    }
+    producedAny = true;
+    const relativePath = path.relative(process.cwd(), latest.fullPath);
+    console.log(`\n${artifact.label} installer ready: ${relativePath}`);
+  }
+
+  if (!producedAny) {
+    throw new Error(`No Windows installers were generated under ${bundleDir}`);
+  }
+}
+
 function buildDesktop() {
   if (process.platform === "linux") {
     buildLinuxDeb();
+    return;
+  }
+
+  if (process.platform === "win32") {
+    buildWindowsInstallers();
     return;
   }
 

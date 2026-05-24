@@ -211,8 +211,10 @@ body::before {
 
 .nav-icon {
   width: 20px;
-  text-align: center;
-  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
 }
 
 .sidebar-foot {
@@ -232,7 +234,10 @@ body::before {
 
 .sidebar-auth-icon {
   width: 18px;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
 }
 
 .main {
