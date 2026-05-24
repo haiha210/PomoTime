@@ -1,4 +1,14 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { vi } from "vitest";
+
+vi.mock("./core/config/supabaseConfig", () => ({
+  getSupabaseRuntimeConfig: () => null,
+  isSupabaseConfigured: () => false,
+}));
+
+vi.mock("./core/supabase/client", () => ({
+  getSupabaseClient: () => null,
+}));
 
 import App from "./App";
 

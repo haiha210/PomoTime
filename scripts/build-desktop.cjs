@@ -62,15 +62,15 @@ function buildLinuxDeb() {
     throw new Error(`No .deb file was generated in ${debDir}`);
   }
 
-  const rootDebPath = path.join(process.cwd(), latestDeb.fileName);
-  fs.copyFileSync(latestDeb.fullPath, rootDebPath);
+  const debPath = latestDeb.fullPath;
+  const relativeDebPath = path.relative(process.cwd(), debPath);
 
   if (ensureCommandAvailable("dpkg-deb")) {
-    run("dpkg-deb", ["--info", rootDebPath], "Deb archive validation");
+    run("dpkg-deb", ["--info", debPath], "Deb archive validation");
   }
 
-  console.log(`\nDeb package ready: ${latestDeb.fileName}`);
-  console.log(`Install with: sudo dpkg -i ${latestDeb.fileName}`);
+  console.log(`\nDeb package ready: ${relativeDebPath}`);
+  console.log(`Install with: sudo dpkg -i ${relativeDebPath}`);
 }
 
 function buildDesktop() {

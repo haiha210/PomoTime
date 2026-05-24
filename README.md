@@ -53,11 +53,11 @@ npm run dev
 npm run build
 ```
 
-On Linux, this command now builds the Debian package via `fakeroot` and copies the generated `.deb` to the project root.
+On Linux, this command builds the Debian package via `fakeroot` and keeps it in the Tauri bundle output directory.
 You can install it directly with:
 
 ```bash
-sudo dpkg -i PomoTime_0.1.0_amd64.deb
+sudo dpkg -i src-tauri/target/release/bundle/deb/PomoTime_0.1.0_amd64.deb
 ```
 
 ## NPM Scripts
