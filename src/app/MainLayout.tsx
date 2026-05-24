@@ -3,6 +3,7 @@ import { NavLink, Outlet } from "react-router-dom";
 
 import type { AuthSession } from "../features/auth/authTypes";
 import { tauriCommands, type SessionRecord } from "../lib/tauriCommands";
+import { toLocalIsoDate } from "../shared/utils/dateTime";
 
 interface MainLayoutProps {
   commandStatus: string;
@@ -24,13 +25,14 @@ function isoDateFromTimestamp(timestamp: string): string {
     return timestamp.slice(0, 10);
   }
 
-  return parsed.toISOString().slice(0, 10);
+  return toLocalIsoDate(parsed);
 }
 
-function addUtcDays(isoDate: string, deltaDays: number): string {
-  const parsed = new Date(`${isoDate}T00:00:00.000Z`);
-  parsed.setUTCDate(parsed.getUTCDate() + deltaDays);
-  return parsed.toISOString().slice(0, 10);
+function addLocalDays(isoDate: string, deltaDays: number): string {
+  const [year, month, day] = isoDate.split("-").map((value) => Number(value));
+  const parsed = new Date(year, month - 1, day);
+  parsed.setDate(parsed.getDate() + deltaDays);
+  return toLocalIsoDate(parsed);
 }
 
 function calculateCurrentStreak(sessions: SessionRecord[]): number {
@@ -42,11 +44,11 @@ function calculateCurrentStreak(sessions: SessionRecord[]): number {
   });
 
   let streak = 0;
-  let cursor = new Date().toISOString().slice(0, 10);
+  let cursor = toLocalIsoDate(new Date());
 
   while ((studiedByDate[cursor] || 0) > 0) {
     streak += 1;
-    cursor = addUtcDays(cursor, -1);
+    cursor = addLocalDays(cursor, -1);
   }
 
   return streak;

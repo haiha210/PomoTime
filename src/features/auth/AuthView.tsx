@@ -1,4 +1,4 @@
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 
 import { loginWithEmailPassword, loginWithGoogle, registerWithEmailPassword } from "./authService";
 import type { AuthSession } from "./authTypes";
@@ -8,16 +8,16 @@ interface AuthViewProps {
   onLogin(session: AuthSession): void;
 }
 
+type FlashTone = "success" | "error";
+
 export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.JSX.Element {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState(hasSupabaseConfig ? "" : "demo@pomotime.local");
   const [password, setPassword] = useState(hasSupabaseConfig ? "" : "demo-password");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [mode, setMode] = useState<"login" | "signup">("login");
-  const [status, setStatus] = useState(
-    hasSupabaseConfig
-      ? "Sign in with your Supabase account or create a new one."
-      : "Use demo credentials or connect Supabase keys."
-  );
+  const [flashMessage, setFlashMessage] = useState("");
+  const [flashTone, setFlashTone] = useState<FlashTone>("success");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const title = mode === "login" ? "Login" : "Create account";
   const submitLabel = mode === "login" ? "Login" : "Create account";
@@ -31,6 +31,25 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
       ? "Sign in with email/password or continue with Google."
       : "Create your account with email/password or continue with Google.";
   }, [hasSupabaseConfig, mode]);
+
+  function showFlash(message: string, tone: FlashTone): void {
+    setFlashMessage(message);
+    setFlashTone(tone);
+  }
+
+  useEffect(() => {
+    if (!flashMessage) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setFlashMessage("");
+    }, 2800);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [flashMessage]);
 
   async function handleEmailLogin(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -47,7 +66,17 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
       return;
     }
 
-    setStatus(result.error || result.message || "Unable to continue");
+    if (result.error) {
+      showFlash(result.error, "error");
+      return;
+    }
+
+    if (result.message) {
+      showFlash(result.message, "success");
+      return;
+    }
+
+    showFlash("Unable to continue", "error");
   }
 
   async function handleGoogleLogin(): Promise<void> {
@@ -60,7 +89,17 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
       return;
     }
 
-    setStatus(result.error || result.message || "Google login failed");
+    if (result.error) {
+      showFlash(result.error, "error");
+      return;
+    }
+
+    if (result.message) {
+      showFlash(result.message, "success");
+      return;
+    }
+
+    showFlash("Google login failed", "error");
   }
 
   return (
@@ -72,6 +111,23 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
           <p className="status-line" data-testid="supabase-mode">
             Supabase mode: {hasSupabaseConfig ? "configured" : "demo"}
           </p>
+
+          {flashMessage ? (
+            <div
+              className={`flash-toast ${flashTone === "error" ? "error" : "success"}`}
+              data-testid="auth-flash-message"
+              role="status"
+              aria-live="polite"
+            >
+              <span className="flash-toast-icon" aria-hidden="true">
+                {flashTone === "error" ? "!" : "✓"}
+              </span>
+              <span className="flash-toast-text">{flashMessage}</span>
+              <button className="flash-toast-close" type="button" aria-label="Dismiss notification" onClick={() => setFlashMessage("")}>
+                ×
+              </button>
+            </div>
+          ) : null}
 
           <form className="login-form-stack" onSubmit={handleEmailLogin}>
             {mode === "signup" ? (
@@ -100,13 +156,35 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
 
             <label className="field">
               Password
-              <input
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Enter password"
-                type="password"
-                autoComplete="current-password"
-              />
+              <div className="login-password-wrap">
+                <input
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Enter password"
+                  type={isPasswordVisible ? "text" : "password"}
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+                  onClick={() => setIsPasswordVisible((current) => !current)}
+                >
+                  {isPasswordVisible ? (
+                    <svg className="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M3 3l18 18" />
+                      <path d="M10.6 10.5a3 3 0 0 0 4.24 4.24" />
+                      <path d="M9.4 5.4A9.8 9.8 0 0 1 12 5c5.2 0 9.2 5 9.2 7s-4 7-9.2 7a9.8 9.8 0 0 1-2.6-.36" />
+                      <path d="M6.2 6.2C3.7 7.7 2 10.2 2 12c0 2 4 7 10 7 1 0 2-.14 2.9-.4" />
+                    </svg>
+                  ) : (
+                    <svg className="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </label>
 
             <div className="btn-row">
@@ -119,11 +197,8 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
                 disabled={isSubmitting}
                 onClick={() => {
                   setMode((current) => (current === "login" ? "signup" : "login"));
-                  setStatus(
-                    hasSupabaseConfig
-                      ? "Use Supabase authentication to continue."
-                      : "Use demo credentials or connect Supabase keys."
-                  );
+                  setIsPasswordVisible(false);
+                  setFlashMessage("");
                 }}
               >
                 {secondaryLabel}
@@ -156,10 +231,6 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
               <span>Continue with Google</span>
             </button>
           </div>
-
-          <p className="status-line" data-testid="auth-status">
-            {status}
-          </p>
         </div>
 
         <div className="login-side">

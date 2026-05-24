@@ -1,9 +1,15 @@
 import type { SessionRecord } from "../../lib/tauriCommands";
+import { toLocalIsoDate } from "../../shared/utils/dateTime";
 
-function addUtcDays(isoDate: string, days: number): string {
-  const date = new Date(`${isoDate}T00:00:00.000Z`);
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
+function parseIsoDateLocal(isoDate: string): Date {
+  const [year, month, day] = isoDate.split("-").map((part) => Number(part));
+  return new Date(year, month - 1, day);
+}
+
+function addLocalDays(isoDate: string, days: number): string {
+  const date = parseIsoDateLocal(isoDate);
+  date.setDate(date.getDate() + days);
+  return toLocalIsoDate(date);
 }
 
 export function isoDateFromTimestamp(timestamp: string): string {
@@ -12,12 +18,12 @@ export function isoDateFromTimestamp(timestamp: string): string {
     return timestamp.slice(0, 10);
   }
 
-  return date.toISOString().slice(0, 10);
+  return toLocalIsoDate(date);
 }
 
 export function weekdayFromIsoDate(isoDate: string): number {
-  const date = new Date(`${isoDate}T00:00:00.000Z`);
-  const weekday = date.getUTCDay();
+  const date = parseIsoDateLocal(isoDate);
+  const weekday = date.getDay();
   return weekday === 0 ? 7 : weekday;
 }
 
@@ -26,7 +32,7 @@ export function buildRecentIsoDates(days: number, endIsoDate: string): string[] 
   const result: string[] = [];
 
   for (let index = normalizedDays - 1; index >= 0; index -= 1) {
-    result.push(addUtcDays(endIsoDate, -index));
+    result.push(addLocalDays(endIsoDate, -index));
   }
 
   return result;
@@ -63,7 +69,7 @@ export function calculateCurrentStreak(
 
   while ((studiedMinutesByDate[cursor] || 0) > 0) {
     streak += 1;
-    cursor = addUtcDays(cursor, -1);
+    cursor = addLocalDays(cursor, -1);
   }
 
   return streak;

@@ -1,20 +1,28 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import Select, { type SingleValue } from "react-select";
 import { useNavigate } from "react-router-dom";
 
 import { tauriCommands, type GoalRecord, type SessionRecord, type SubjectRecord } from "../../lib/tauriCommands";
+import { NativePickerInput } from "../../shared/components/NativePickerInput";
+import { isValidIsoDate, toLocalIsoDate } from "../../shared/utils/dateTime";
 
 interface OnboardingViewProps {
   userId: string;
 }
 
+interface QuickSelectOption {
+  value: string;
+  label: string;
+}
+
 function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return toLocalIsoDate(new Date());
 }
 
 function plusDaysIsoDate(days: number): string {
   const next = new Date();
   next.setDate(next.getDate() + days);
-  return next.toISOString().slice(0, 10);
+  return toLocalIsoDate(next);
 }
 
 function isoDateFromTimestamp(timestamp: string): string {
@@ -23,7 +31,7 @@ function isoDateFromTimestamp(timestamp: string): string {
     return timestamp.slice(0, 10);
   }
 
-  return parsed.toISOString().slice(0, 10);
+  return toLocalIsoDate(parsed);
 }
 
 function formatMinutes(totalMinutes: number): string {
@@ -34,21 +42,23 @@ function formatMinutes(totalMinutes: number): string {
 }
 
 function buildRecentIsoDates(days: number, endIsoDate: string): string[] {
-  const end = new Date(`${endIsoDate}T00:00:00.000Z`);
+  const [endYear, endMonth, endDay] = endIsoDate.split("-").map((part) => Number(part));
+  const end = new Date(endYear, endMonth - 1, endDay);
   const result: string[] = [];
 
   for (let index = days - 1; index >= 0; index -= 1) {
     const cursor = new Date(end);
-    cursor.setUTCDate(end.getUTCDate() - index);
-    result.push(cursor.toISOString().slice(0, 10));
+    cursor.setDate(end.getDate() - index);
+    result.push(toLocalIsoDate(cursor));
   }
 
   return result;
 }
 
 function dayShortLabel(isoDate: string): string {
-  const parsed = new Date(`${isoDate}T00:00:00.000Z`);
-  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][parsed.getUTCDay()];
+  const [year, month, day] = isoDate.split("-").map((part) => Number(part));
+  const parsed = new Date(year, month - 1, day);
+  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][parsed.getDay()];
 }
 
 function workModeLabel(mode: string): string {
@@ -113,7 +123,8 @@ export function OnboardingView({ userId }: OnboardingViewProps): React.JSX.Eleme
 
   const weekColumns = useMemo(() => {
     const rawValues = weekDates.map((date) => {
-      const weekday = new Date(`${date}T00:00:00.000Z`).getUTCDay();
+      const [year, month, day] = date.split("-").map((part) => Number(part));
+      const weekday = new Date(year, month - 1, day).getDay();
       const normalizedWeekday = weekday === 0 ? 7 : weekday;
       const studied = studiedMinutesByDate[date] || 0;
       const target = targetsByWeekday[normalizedWeekday] || 0;
@@ -156,6 +167,47 @@ export function OnboardingView({ userId }: OnboardingViewProps): React.JSX.Eleme
 
     return subjects.map((subject) => subject.name);
   }, [subjects]);
+
+  const subjectSelectOptions = useMemo<QuickSelectOption[]>(() => {
+    return availableQuickSubjects.map((subjectName) => ({
+      value: subjectName,
+      label: subjectName,
+    }));
+  }, [availableQuickSubjects]);
+
+  const workModeSelectOptions = useMemo<QuickSelectOption[]>(
+    () => [
+      { value: "pomodoro", label: "Tomato Sprint (Pomodoro)" },
+      { value: "focus_clock", label: "Focus Clock (Count up)" },
+    ],
+    []
+  );
+
+  const draftSubjectOption = useMemo(() => {
+    return subjectSelectOptions.find((option) => option.value === draftQuickSubject) || subjectSelectOptions[0] || null;
+  }, [draftQuickSubject, subjectSelectOptions]);
+
+  const draftWorkModeOption = useMemo(() => {
+    return workModeSelectOptions.find((option) => option.value === draftQuickWorkMode) || workModeSelectOptions[0] || null;
+  }, [draftQuickWorkMode, workModeSelectOptions]);
+
+  const selectPortalTarget = typeof document !== "undefined" ? document.body : undefined;
+
+  function handleSubjectSelectChange(option: SingleValue<QuickSelectOption>): void {
+    if (!option) {
+      return;
+    }
+
+    setDraftQuickSubject(option.value);
+  }
+
+  function handleWorkModeSelectChange(option: SingleValue<QuickSelectOption>): void {
+    if (!option) {
+      return;
+    }
+
+    setDraftQuickWorkMode(option.value);
+  }
 
   async function loadGoals(): Promise<void> {
     const [goalsResponse, sessionsResponse, subjectsResponse] = await Promise.all([
@@ -251,6 +303,16 @@ export function OnboardingView({ userId }: OnboardingViewProps): React.JSX.Eleme
       return;
     }
 
+    if (!isValidIsoDate(startDate) || !isValidIsoDate(endDate)) {
+      setStatus("Dates must use YYYY-MM-DD format.");
+      return;
+    }
+
+    if (startDate > endDate) {
+      setStatus("End date must be after start date.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     const createResponse = await tauriCommands.createGoal({
@@ -316,12 +378,12 @@ export function OnboardingView({ userId }: OnboardingViewProps): React.JSX.Eleme
                 <div className="grid-2">
                   <label className="field">
                     Start date
-                    <input value={startDate} onChange={(event) => setStartDate(event.target.value)} type="date" />
+                    <NativePickerInput value={startDate} onChange={(event) => setStartDate(event.target.value)} type="date" />
                   </label>
 
                   <label className="field">
                     End date
-                    <input value={endDate} onChange={(event) => setEndDate(event.target.value)} type="date" />
+                    <NativePickerInput value={endDate} onChange={(event) => setEndDate(event.target.value)} type="date" />
                   </label>
                 </div>
 
@@ -435,13 +497,18 @@ export function OnboardingView({ userId }: OnboardingViewProps): React.JSX.Eleme
             <p className="muted">Choose the subject that will be started by Quick Study.</p>
             <label className="field" style={{ marginTop: "10px" }}>
               Subject
-              <select value={draftQuickSubject} onChange={(event) => setDraftQuickSubject(event.target.value)}>
-                {availableQuickSubjects.map((subjectName) => (
-                  <option key={subjectName} value={subjectName}>
-                    {subjectName}
-                  </option>
-                ))}
-              </select>
+              <Select<QuickSelectOption, false>
+                inputId="quick-study-subject-select"
+                className="quick-study-select-container"
+                classNamePrefix="quick-study-select"
+                options={subjectSelectOptions}
+                value={draftSubjectOption}
+                onChange={handleSubjectSelectChange}
+                menuPortalTarget={selectPortalTarget}
+                menuPosition="fixed"
+                isSearchable={false}
+                isClearable={false}
+              />
             </label>
             <div className="btn-row" style={{ marginTop: "12px" }}>
               <button
@@ -469,10 +536,18 @@ export function OnboardingView({ userId }: OnboardingViewProps): React.JSX.Eleme
             <p className="muted">Choose the work mode used by Quick Study.</p>
             <label className="field" style={{ marginTop: "10px" }}>
               Work mode
-              <select value={draftQuickWorkMode} onChange={(event) => setDraftQuickWorkMode(event.target.value)}>
-                <option value="pomodoro">Tomato Sprint (Pomodoro)</option>
-                <option value="focus_clock">Focus Clock (Count up)</option>
-              </select>
+              <Select<QuickSelectOption, false>
+                inputId="quick-study-workmode-select"
+                className="quick-study-select-container"
+                classNamePrefix="quick-study-select"
+                options={workModeSelectOptions}
+                value={draftWorkModeOption}
+                onChange={handleWorkModeSelectChange}
+                menuPortalTarget={selectPortalTarget}
+                menuPosition="fixed"
+                isSearchable={false}
+                isClearable={false}
+              />
             </label>
             <div className="btn-row" style={{ marginTop: "12px" }}>
               <button

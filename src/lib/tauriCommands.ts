@@ -132,19 +132,27 @@ function generateLocalId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
 }
 
+function toLocalIsoDate(value: Date): string {
+  const year = String(value.getFullYear());
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function toIsoDateKey(timestamp: string): string {
   const parsed = new Date(timestamp);
   if (Number.isNaN(parsed.getTime())) {
     return timestamp.slice(0, 10);
   }
 
-  return parsed.toISOString().slice(0, 10);
+  return toLocalIsoDate(parsed);
 }
 
 function previousIsoDate(isoDate: string): string {
-  const cursor = new Date(`${isoDate}T00:00:00.000Z`);
-  cursor.setUTCDate(cursor.getUTCDate() - 1);
-  return cursor.toISOString().slice(0, 10);
+  const [year, month, day] = isoDate.split("-").map((part) => Number(part));
+  const cursor = new Date(year, month - 1, day);
+  cursor.setDate(cursor.getDate() - 1);
+  return toLocalIsoDate(cursor);
 }
 
 function calculateStreakFromDateSet(dateSet: Set<string>, endIsoDate: string): number {
@@ -172,8 +180,8 @@ function webPreviewCommand<T>(command: string, args?: InvokeArguments): ApiRespo
         title: String(input.title || "Untitled goal"),
         description: (input.description as string | null) ?? null,
         goal_type: String(input.goal_type || "custom"),
-        start_date: String(input.start_date || new Date().toISOString().slice(0, 10)),
-        end_date: String(input.end_date || new Date().toISOString().slice(0, 10)),
+        start_date: String(input.start_date || toLocalIsoDate(new Date())),
+        end_date: String(input.end_date || toLocalIsoDate(new Date())),
         is_active: Boolean(input.is_active),
       };
 
@@ -506,7 +514,7 @@ function webPreviewCommand<T>(command: string, args?: InvokeArguments): ApiRespo
 
     case "get_daily_stats": {
       const userId = String(input.user_id || "");
-      const date = String(input.date || new Date().toISOString().slice(0, 10));
+      const date = String(input.date || toLocalIsoDate(new Date()));
       const targetMinutes = Math.max(0, Math.floor(Number(input.target_minutes || 0)));
 
       const userSessions = database.sessions.filter((session) => session.user_id === userId);

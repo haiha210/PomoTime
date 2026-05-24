@@ -509,6 +509,103 @@ body::before {
   box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.18);
 }
 
+.quick-study-select-container {
+  width: 100%;
+}
+
+.quick-study-select__control {
+  min-height: 44px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--surface) !important;
+  box-shadow: none !important;
+}
+
+.quick-study-select__control--is-focused {
+  border-color: #80c9c2 !important;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.18) !important;
+}
+
+.quick-study-select__value-container {
+  padding: 2px 11px !important;
+}
+
+.quick-study-select__single-value {
+  color: var(--text-primary) !important;
+}
+
+.quick-study-select__placeholder {
+  color: var(--text-secondary) !important;
+}
+
+.quick-study-select__indicator-separator {
+  background-color: #d6dde3 !important;
+}
+
+.quick-study-select__menu {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(15, 27, 39, 0.16) !important;
+}
+
+.quick-study-select__menu-portal {
+  z-index: 330 !important;
+}
+
+.quick-study-select__option {
+  padding: 10px 12px !important;
+  font-size: 0.9rem !important;
+}
+
+.quick-study-select__option--is-focused {
+  background: #f2f8f7 !important;
+  color: var(--text-primary) !important;
+}
+
+.quick-study-select__option--is-selected {
+  background: #e9f6f4 !important;
+  color: #0b5d57 !important;
+  font-weight: 700;
+}
+
+.react-datepicker-wrapper,
+.react-datepicker__input-container {
+  display: block;
+  width: 100%;
+}
+
+.learn-time-picker-input {
+  width: 100%;
+}
+
+.learn-time-datepicker-popper {
+  z-index: 320 !important;
+}
+
+.react-datepicker {
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  font-family: "Manrope", sans-serif !important;
+}
+
+.react-datepicker__header {
+  background: #f5f9fa !important;
+  border-bottom: 1px solid #dce5e8 !important;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__time-list-item--selected {
+  background: var(--accent) !important;
+  color: #ffffff !important;
+}
+
+.react-datepicker__day:hover,
+.react-datepicker__time-list-item:hover {
+  background: #e9f6f4 !important;
+}
+
 .grid-2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -717,6 +814,53 @@ th {
   margin-top: 10px;
 }
 
+.login-password-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-password-wrap input {
+  padding-right: 42px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #4f6370;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.password-toggle-btn:hover {
+  background: rgba(17, 19, 21, 0.08);
+  color: #172028;
+}
+
+.password-toggle-btn:focus-visible {
+  outline: 2px solid #80c9c2;
+  outline-offset: 1px;
+}
+
+.password-toggle-icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .login-divider {
   display: flex;
   align-items: center;
@@ -862,6 +1006,61 @@ th {
   display: block;
   background: linear-gradient(180deg, #0f766e, #7dcac3);
   border-radius: 8px 8px 6px 6px;
+}
+
+.dashboard-trend-chart {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  align-items: end;
+}
+
+.dashboard-trend-column {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.dashboard-trend-value {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #33414c;
+}
+
+.dashboard-trend-bar-shell {
+  width: 100%;
+  height: 132px;
+  border-radius: 10px;
+  background: #edf2f4;
+  border: 1px solid #dfe5e8;
+  padding: 4px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.dashboard-trend-bar {
+  display: block;
+  width: 100%;
+  min-height: 6px;
+  border-radius: 8px 8px 5px 5px;
+  background: linear-gradient(180deg, #0f766e, #7dcac3);
+  transition: height 180ms ease;
+}
+
+.dashboard-trend-bar-zero {
+  min-height: 0;
+  height: 0 !important;
+  background: transparent;
+}
+
+.dashboard-trend-label {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+}
+
+.dashboard-trend-caption {
+  margin-top: 8px;
 }
 
 .filter-active {
@@ -1215,6 +1414,25 @@ th {
   padding: 10px;
 }
 
+.goal-detail-date-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+  border: 1px solid #dce5e8;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  padding: 10px;
+}
+
+.goal-detail-date-field {
+  margin: 0;
+}
+
+.goal-detail-save-date-btn {
+  white-space: nowrap;
+}
+
 .goal-detail-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1330,18 +1548,32 @@ th {
   color: #0f6f68;
 }
 
-.weekly-target-minutes-wrap {
+.weekly-target-duration-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   color: var(--text-secondary);
   font-size: 0.8rem;
   justify-self: end;
 }
 
-.goal-weekly-section .weekly-target-minutes {
-  width: 96px;
+.weekly-target-duration-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.goal-weekly-section .weekly-target-hours,
+.goal-weekly-section .weekly-target-minute-part {
+  width: 74px;
   padding: 7px 10px;
+}
+
+.weekly-target-total {
+  min-width: 70px;
+  text-align: right;
+  font-size: 0.78rem;
+  color: #58646d;
 }
 
 .weekly-grid {
@@ -1608,6 +1840,7 @@ th {
   .create-goal-grid,
   .create-goal-modal-grid,
   .goal-detail-toolbar,
+  .goal-detail-date-row,
   .goal-row {
     grid-template-columns: 1fr;
   }
@@ -1655,8 +1888,14 @@ th {
     gap: 6px;
   }
 
-  .weekly-target-minutes-wrap {
+  .weekly-target-duration-wrap {
     justify-self: start;
+    flex-wrap: wrap;
+  }
+
+  .weekly-target-total {
+    min-width: 0;
+    text-align: left;
   }
 
   .modal-card.goals-detail-modal,

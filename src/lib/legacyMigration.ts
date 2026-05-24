@@ -77,7 +77,7 @@ function fallbackTimesByDateAndDuration(date: string, durationMinutes: number): 
   startTime: string;
   endTime: string;
 } | null {
-  const base = new Date(`${date}T00:00:00.000Z`);
+  const base = new Date(`${date}T00:00:00`);
   if (Number.isNaN(base.getTime())) {
     return null;
   }

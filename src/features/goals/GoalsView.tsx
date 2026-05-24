@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { tauriCommands, type GoalRecord, type SubjectRecord } from "../../lib/tauriCommands";
+import { NativePickerInput } from "../../shared/components/NativePickerInput";
+import { isValidIsoDate, toLocalIsoDate } from "../../shared/utils/dateTime";
 
 interface GoalsViewProps {
   userId: string;
@@ -20,13 +22,29 @@ const weekdayRows = [
 ] as const;
 
 function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return toLocalIsoDate(new Date());
 }
 
 function plusDaysIsoDate(days: number): string {
   const date = new Date();
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
+  date.setDate(date.getDate() + days);
+  return toLocalIsoDate(date);
+}
+
+function clampNonNegativeInt(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor(value));
+}
+
+function clampMinutePart(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(59, Math.floor(value)));
 }
 
 export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
@@ -47,6 +65,8 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
   const [selectedGoalId, setSelectedGoalId] = useState("");
   const [targetsByWeekday, setTargetsByWeekday] = useState<Record<number, number>>({});
   const [enabledByWeekday, setEnabledByWeekday] = useState<Record<number, boolean>>({});
+  const [detailDateFrom, setDetailDateFrom] = useState("");
+  const [detailDateTo, setDetailDateTo] = useState("");
 
   const [flashMessage, setFlashMessage] = useState("");
   const [flashTone, setFlashTone] = useState<FlashTone>("success");
@@ -130,12 +150,33 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
 
   const selectedGoal = useMemo(() => goals.find((goal) => goal.id === selectedGoalId) || null, [goals, selectedGoalId]);
 
+  useEffect(() => {
+    if (!selectedGoal) {
+      setDetailDateFrom("");
+      setDetailDateTo("");
+      return;
+    }
+
+    setDetailDateFrom(selectedGoal.start_date);
+    setDetailDateTo(selectedGoal.end_date);
+  }, [selectedGoal]);
+
   async function handleCreateGoal(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     const trimmedTitle = goalTitle.trim();
 
     if (!trimmedTitle) {
       showFlash("Please enter a goal title.", "error");
+      return;
+    }
+
+    if (!isValidIsoDate(goalStartDate) || !isValidIsoDate(goalEndDate)) {
+      showFlash("Dates must use YYYY-MM-DD format.", "error");
+      return;
+    }
+
+    if (goalStartDate > goalEndDate) {
+      showFlash("End date must be after start date.", "error");
       return;
     }
 
@@ -222,6 +263,43 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
     showFlash("Weekly targets saved.", "success");
     await loadTargets(selectedGoalId);
     setSelectedGoalId("");
+  }
+
+  async function handleSaveGoalDateRange(): Promise<void> {
+    if (!selectedGoal) {
+      showFlash("Select a goal first.", "error");
+      return;
+    }
+
+    if (!isValidIsoDate(detailDateFrom) || !isValidIsoDate(detailDateTo)) {
+      showFlash("Dates must use YYYY-MM-DD format.", "error");
+      return;
+    }
+
+    if (detailDateFrom > detailDateTo) {
+      showFlash("Date to must be after date from.", "error");
+      return;
+    }
+
+    const response = await tauriCommands.updateGoal({
+      id: selectedGoal.id,
+      userId: selectedGoal.user_id,
+      title: selectedGoal.title,
+      description: selectedGoal.description || undefined,
+      goalType: selectedGoal.goal_type,
+      startDate: detailDateFrom,
+      endDate: detailDateTo,
+      isActive: selectedGoal.is_active,
+    });
+
+    if (!response.success || !response.data) {
+      showFlash(response.error || "Unable to update goal dates.", "error");
+      return;
+    }
+
+    showFlash("Goal timeline updated.", "success");
+    await loadData();
+    setSelectedGoalId(response.data.id);
   }
 
   return (
@@ -341,7 +419,7 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
 
                 <label htmlFor="goal-start-date-input">
                   Start date
-                  <input
+                  <NativePickerInput
                     id="goal-start-date-input"
                     type="date"
                     value={goalStartDate}
@@ -351,7 +429,7 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
 
                 <label htmlFor="goal-end-date-input">
                   End date
-                  <input
+                  <NativePickerInput
                     id="goal-end-date-input"
                     type="date"
                     value={goalEndDate}
@@ -405,6 +483,30 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
               </button>
             </div>
 
+            <div className="goal-detail-date-row">
+              <label className="field goal-detail-date-field">
+                Date from
+                <NativePickerInput
+                  type="date"
+                  value={detailDateFrom}
+                  onChange={(event) => setDetailDateFrom(event.target.value)}
+                />
+              </label>
+
+              <label className="field goal-detail-date-field">
+                Date to
+                <NativePickerInput
+                  type="date"
+                  value={detailDateTo}
+                  onChange={(event) => setDetailDateTo(event.target.value)}
+                />
+              </label>
+
+              <button className="btn secondary goal-detail-save-date-btn" type="button" onClick={() => void handleSaveGoalDateRange()}>
+                Save timeline
+              </button>
+            </div>
+
             <div className="goal-detail-grid">
               <article className="goal-detail-card">
                 <h3>Subjects</h3>
@@ -453,7 +555,7 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
 
                   <label htmlFor="reminder-time-input">
                     Reminder time
-                    <input
+                    <NativePickerInput
                       id="reminder-time-input"
                       type="time"
                       value={reminderTime}
@@ -467,18 +569,20 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
             </div>
 
             <div className="goal-weekly-section">
-              <p className="muted">Configure daily target minutes by weekday for this goal.</p>
+              <p className="muted">Configure daily target duration by weekday for this goal.</p>
 
               <div className="weekly-target-table" id="weekly-target-grid">
                 <div className="weekly-target-table-head" aria-hidden="true">
                   <span className="weekly-target-head-day">Day</span>
                   <span className="weekly-target-head-status">Status</span>
-                  <span className="weekly-target-head-minutes">Target</span>
+                  <span className="weekly-target-head-minutes">Target time</span>
                 </div>
 
                 {weekdayRows.map(({ value, label }) => {
                   const enabled = Boolean(enabledByWeekday[value]);
-                  const minutes = targetsByWeekday[value] || 0;
+                  const totalMinutes = targetsByWeekday[value] || 0;
+                  const hoursPart = Math.floor(totalMinutes / 60);
+                  const minutesPart = totalMinutes % 60;
 
                   return (
                     <div className="weekly-target-table-row" key={value}>
@@ -507,24 +611,62 @@ export function GoalsView({ userId }: GoalsViewProps): React.JSX.Element {
                         <span>{enabled ? "Active" : "Rest"}</span>
                       </div>
 
-                      <div className="weekly-target-minutes-wrap">
-                        <input
-                          className="weekly-target-minutes"
-                          type="number"
-                          min={0}
-                          step={5}
-                          value={minutes}
-                          disabled={!enabled}
-                          onChange={(event) => {
-                            const nextValue = Number(event.target.value);
-                            setTargetsByWeekday((previous) => ({
-                              ...previous,
-                              [value]: Number.isFinite(nextValue) ? nextValue : 0,
-                            }));
-                          }}
-                        />
-                        <span>min</span>
+                      <div className="weekly-target-duration-wrap">
+                        <div className="weekly-target-duration-field">
+                          <input
+                            className="weekly-target-hours"
+                            type="number"
+                            min={0}
+                            step={1}
+                            value={hoursPart}
+                            aria-label={`${label} target hours`}
+                            disabled={!enabled}
+                            onChange={(event) => {
+                              const nextHours = clampNonNegativeInt(Number(event.target.value));
+
+                              setTargetsByWeekday((previous) => {
+                                const currentValue = Math.max(0, previous[value] || 0);
+                                const currentMinutesPart = currentValue % 60;
+
+                                return {
+                                  ...previous,
+                                  [value]: nextHours * 60 + currentMinutesPart,
+                                };
+                              });
+                            }}
+                          />
+                          <span>h</span>
                         </div>
+
+                        <div className="weekly-target-duration-field">
+                          <input
+                            className="weekly-target-minute-part"
+                            type="number"
+                            min={0}
+                            max={59}
+                            step={5}
+                            value={minutesPart}
+                            aria-label={`${label} target minutes`}
+                            disabled={!enabled}
+                            onChange={(event) => {
+                              const nextMinutesPart = clampMinutePart(Number(event.target.value));
+
+                              setTargetsByWeekday((previous) => {
+                                const currentValue = Math.max(0, previous[value] || 0);
+                                const currentHoursPart = Math.floor(currentValue / 60);
+
+                                return {
+                                  ...previous,
+                                  [value]: currentHoursPart * 60 + nextMinutesPart,
+                                };
+                              });
+                            }}
+                          />
+                          <span>m</span>
+                        </div>
+
+                        <span className="weekly-target-total">{totalMinutes} min</span>
+                      </div>
                     </div>
                   );
                 })}

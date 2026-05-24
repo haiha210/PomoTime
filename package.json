@@ -8,7 +8,8 @@
     "build:web": "vite build && node -e \"require('fs').copyFileSync('app-config.js','dist/app-config.js')\"",
     "preview:web": "vite preview --host 0.0.0.0 --port 4173 --strictPort",
     "dev": "tauri dev",
-    "build": "tauri build",
+    "build": "node scripts/build-desktop.cjs",
+    "build:deb": "node scripts/build-desktop.cjs",
     "tauri": "tauri",
     "hooks:install": "git config core.hooksPath .githooks",
     "prepush:check": "cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check && npm run test:all",
@@ -42,7 +43,9 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.106.1",
     "react": "^19.2.6",
+    "react-datepicker": "^9.1.0",
     "react-dom": "^19.2.6",
-    "react-router-dom": "^7.15.1"
+    "react-router-dom": "^7.15.1",
+    "react-select": "^5.10.2"
   }
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { tauriCommands, type GoalRecord, type SessionRecord, type SubjectRecord } from "../../lib/tauriCommands";
+import { toLocalIsoDate } from "../../shared/utils/dateTime";
 import {
   buildRecentIsoDates,
   isoDateFromTimestamp,
@@ -17,23 +18,24 @@ interface DashboardViewProps {
 type RangeFilter = "this-week" | "this-month" | "last-3-months";
 
 function startDateForRange(range: RangeFilter, endIsoDate: string): string {
-  const cursor = new Date(`${endIsoDate}T00:00:00.000Z`);
+  const [year, month, day] = endIsoDate.split("-").map((value) => Number(value));
+  const cursor = new Date(year, month - 1, day);
 
   if (range === "this-week") {
-    const weekday = cursor.getUTCDay();
+    const weekday = cursor.getDay();
     const daysToMonday = weekday === 0 ? 6 : weekday - 1;
-    cursor.setUTCDate(cursor.getUTCDate() - daysToMonday);
-    return cursor.toISOString().slice(0, 10);
+    cursor.setDate(cursor.getDate() - daysToMonday);
+    return toLocalIsoDate(cursor);
   }
 
   if (range === "this-month") {
-    cursor.setUTCDate(1);
-    return cursor.toISOString().slice(0, 10);
+    cursor.setDate(1);
+    return toLocalIsoDate(cursor);
   }
 
-  cursor.setUTCDate(1);
-  cursor.setUTCMonth(cursor.getUTCMonth() - 2);
-  return cursor.toISOString().slice(0, 10);
+  cursor.setDate(1);
+  cursor.setMonth(cursor.getMonth() - 2);
+  return toLocalIsoDate(cursor);
 }
 
 function rangeLabel(range: RangeFilter): string {
@@ -53,6 +55,12 @@ function formatMinutes(totalMinutes: number): string {
   const hours = Math.floor(safeMinutes / 60);
   const minutes = safeMinutes % 60;
   return `${hours}h ${minutes}m`;
+}
+
+function weekdayShortLabel(isoDate: string): string {
+  const [year, month, day] = isoDate.split("-").map((value) => Number(value));
+  const parsed = new Date(year, month - 1, day);
+  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][parsed.getDay()];
 }
 
 export function DashboardView({ userId }: DashboardViewProps): React.JSX.Element {
@@ -134,7 +142,7 @@ export function DashboardView({ userId }: DashboardViewProps): React.JSX.Element
     void loadTargets(selectedGoal.id);
   }, [goals, selectedGoalId]);
 
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const today = useMemo(() => toLocalIsoDate(new Date()), []);
   const selectedGoal = useMemo(() => {
     if (selectedGoalId === "all") {
       return goals.find((goal) => goal.is_active) || goals[0] || null;
@@ -185,17 +193,21 @@ export function DashboardView({ userId }: DashboardViewProps): React.JSX.Element
 
   const trendBars = useMemo(() => {
     const values = last7Dates.map((date) => studiedMinutesByDate[date] || 0);
-    const maxValue = Math.max(1, ...values);
+    const maxValue = Math.max(0, ...values);
 
     return last7Dates.map((date) => {
       const value = studiedMinutesByDate[date] || 0;
       return {
         date,
         value,
-        heightPercent: Math.max(6, Math.round((value / maxValue) * 100)),
+        weekdayLabel: weekdayShortLabel(date),
+        heightPercent: value <= 0 || maxValue <= 0 ? 0 : Math.max(8, Math.round((value / maxValue) * 100)),
       };
     });
   }, [last7Dates, studiedMinutesByDate]);
+
+  const maxTrendValue = useMemo(() => Math.max(0, ...trendBars.map((bar) => bar.value)), [trendBars]);
+  const hasTrendData = trendBars.some((bar) => bar.value > 0);
 
   const filterSummary = useMemo(() => {
     const goalLabel = selectedGoal ? selectedGoal.title : "All goals";
@@ -269,15 +281,30 @@ export function DashboardView({ userId }: DashboardViewProps): React.JSX.Element
 
       <div className="panel" style={{ marginTop: "12px" }}>
         <h3>Study trend - last 7 days</h3>
-        <div className="bars" id="dashboard-trend-bars">
+        <div className="dashboard-trend-chart" id="dashboard-trend-bars">
           {trendBars.map((bar) => (
-            <i
+            <div
               key={bar.date}
-              style={{ height: `${bar.heightPercent}%` }}
+              className="dashboard-trend-column"
               title={`${bar.date}: ${bar.value} minutes`}
-            />
+            >
+              <span className="dashboard-trend-value">{bar.value}m</span>
+              <div className="dashboard-trend-bar-shell">
+                <i
+                  className={`dashboard-trend-bar${bar.value === 0 ? " dashboard-trend-bar-zero" : ""}`}
+                  style={{ height: `${bar.heightPercent}%` }}
+                />
+              </div>
+              <span className="dashboard-trend-label">{bar.weekdayLabel}</span>
+            </div>
           ))}
         </div>
+
+        {hasTrendData ? (
+          <p className="muted dashboard-trend-caption">Peak day: {maxTrendValue} minutes.</p>
+        ) : (
+          <p className="muted dashboard-trend-caption">No sessions in the last 7 days.</p>
+        )}
 
         <div className="btn-row" style={{ marginTop: "12px" }}>
           <button className="btn primary" type="button" onClick={() => navigate("/timer")}>

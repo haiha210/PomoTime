@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { tauriCommands, type GoalRecord, type SessionRecord, type SubjectRecord } from "../../lib/tauriCommands";
-import { formatIsoDate } from "../../shared/utils/dateTime";
+import { NativePickerInput } from "../../shared/components/NativePickerInput";
+import { formatIsoDate, isValidIsoDate, toLocalIsoDate } from "../../shared/utils/dateTime";
 
 interface HistoryViewProps {
   userId: string;
@@ -33,7 +34,17 @@ function isoDateFromTimestamp(timestamp: string): string {
     return timestamp.slice(0, 10);
   }
 
-  return parsed.toISOString().slice(0, 10);
+  return toLocalIsoDate(parsed);
+}
+
+function localIsoDate(date: Date): string {
+  return toLocalIsoDate(date);
+}
+
+function localTimeHHmm(date: Date): string {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
 }
 
 export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
@@ -52,7 +63,7 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
   const [manualGoalId, setManualGoalId] = useState("none");
   const [manualSubjectId, setManualSubjectId] = useState("none");
   const [manualTitle, setManualTitle] = useState("Manual session");
-  const [manualDate, setManualDate] = useState(new Date().toISOString().slice(0, 10));
+  const [manualDate, setManualDate] = useState(localIsoDate(new Date()));
   const [manualTime, setManualTime] = useState("08:00");
   const [manualDuration, setManualDuration] = useState(30);
   const [manualNote, setManualNote] = useState("");
@@ -113,6 +124,8 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
 
   const filteredSessions = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
+    const validFromDate = isValidIsoDate(fromDate) ? fromDate : "";
+    const validToDate = isValidIsoDate(toDate) ? toDate : "";
 
     return [...sessions]
       .sort((left, right) => right.start_time.localeCompare(left.start_time))
@@ -121,11 +134,11 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
         const subjectName = session.subject_id ? subjectNameById.get(session.subject_id) || session.subject_id : "General";
         const goalName = session.goal_id ? goalNameById.get(session.goal_id) || session.goal_id : "No goal";
 
-        if (fromDate && sessionDate < fromDate) {
+        if (validFromDate && sessionDate < validFromDate) {
           return false;
         }
 
-        if (toDate && sessionDate > toDate) {
+        if (validToDate && sessionDate > validToDate) {
           return false;
         }
 
@@ -143,7 +156,19 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
   }, [fromDate, goalNameById, search, sessions, subjectFilter, subjectNameById, toDate]);
 
   async function handleAddManualSession(): Promise<void> {
-    const startIso = new Date(`${manualDate}T${manualTime}:00.000Z`).toISOString();
+    if (!isValidIsoDate(manualDate)) {
+      setStatus("Date must use YYYY-MM-DD format.");
+      return;
+    }
+
+    const startCandidate = new Date(`${manualDate}T${manualTime}:00`);
+    if (Number.isNaN(startCandidate.getTime())) {
+      setStatus("Please enter a valid start date and time.");
+      return;
+    }
+
+    const startIso = startCandidate.toISOString();
+
     const safeDuration = Math.max(1, manualDuration);
     const endIso = endIsoFromStartAndDuration(startIso, safeDuration);
 
@@ -167,6 +192,12 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
     setStatus("Manual session added.");
     setIsManualPanelOpen(false);
     await loadData();
+  }
+
+  function setManualToNow(): void {
+    const now = new Date();
+    setManualDate(localIsoDate(now));
+    setManualTime(localTimeHHmm(now));
   }
 
   function exportAsJson(): void {
@@ -221,12 +252,12 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
 
         <label className="field">
           From date
-          <input value={fromDate} onChange={(event) => setFromDate(event.target.value)} type="date" />
+          <NativePickerInput value={fromDate} onChange={(event) => setFromDate(event.target.value)} type="date" />
         </label>
 
         <label className="field">
           To date
-          <input value={toDate} onChange={(event) => setToDate(event.target.value)} type="date" />
+          <NativePickerInput value={toDate} onChange={(event) => setToDate(event.target.value)} type="date" />
         </label>
 
         <label className="field">
@@ -285,13 +316,19 @@ export function HistoryView({ userId }: HistoryViewProps): React.JSX.Element {
 
             <label className="field">
               Date
-              <input value={manualDate} onChange={(event) => setManualDate(event.target.value)} type="date" />
+              <NativePickerInput value={manualDate} onChange={(event) => setManualDate(event.target.value)} type="date" />
             </label>
 
             <label className="field">
               Time
-              <input value={manualTime} onChange={(event) => setManualTime(event.target.value)} type="time" />
+              <NativePickerInput value={manualTime} onChange={(event) => setManualTime(event.target.value)} type="time" />
             </label>
+          </div>
+
+          <div className="btn-row" style={{ marginTop: "-2px", marginBottom: "4px" }}>
+            <button className="btn ghost" type="button" onClick={setManualToNow}>
+              Set now
+            </button>
           </div>
 
           <div className="grid-4">

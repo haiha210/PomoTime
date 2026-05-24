@@ -45,9 +45,23 @@ describe("App", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Login" }));
 
-    expect(await screen.findByTestId("auth-status")).toHaveTextContent(
+    expect(await screen.findByTestId("auth-flash-message")).toHaveTextContent(
       "Email and password are required"
     );
+  });
+
+  it("toggles password visibility with eye button", async () => {
+    render(<App />);
+    await screen.findByRole("heading", { name: "Login" });
+
+    const passwordInput = screen.getByLabelText("Password") as HTMLInputElement;
+    expect(passwordInput.type).toBe("password");
+
+    fireEvent.click(screen.getByRole("button", { name: "Show password" }));
+    expect(passwordInput.type).toBe("text");
+
+    fireEvent.click(screen.getByRole("button", { name: "Hide password" }));
+    expect(passwordInput.type).toBe("password");
   });
 
   it("restores previous demo session on startup", async () => {
