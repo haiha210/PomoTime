@@ -12,48 +12,59 @@ vi.mock("./core/supabase/client", () => ({
 
 import App from "./App";
 
-describe("App", () => {
+describe("App without Supabase configuration", () => {
   beforeEach(() => {
     window.location.hash = "";
     sessionStorage.clear();
     localStorage.clear();
   });
 
-  it("shows login screen when user is not authenticated", async () => {
+  it("shows the login screen with a Supabase-missing notice", async () => {
     render(<App />);
 
     expect(await screen.findByRole("heading", { name: "Login" })).toBeInTheDocument();
-    expect(screen.getByTestId("supabase-mode")).toHaveTextContent("Supabase mode: demo");
+    expect(screen.getByTestId("supabase-mode")).toHaveTextContent("Supabase mode: missing");
     expect(screen.queryByLabelText("Display name (optional)")).not.toBeInTheDocument();
   });
 
-  it("logs in demo user and opens dashboard", async () => {
+  it("disables the login submit button when Supabase is missing", async () => {
+    render(<App />);
+    await screen.findByRole("heading", { name: "Login" });
+
+    const submitButton = screen.getByRole("button", { name: "Login" }) as HTMLButtonElement;
+    expect(submitButton.disabled).toBe(true);
+  });
+
+  it("surfaces a Supabase-required error when login is attempted directly", async () => {
     render(<App />);
     await screen.findByRole("heading", { name: "Login" });
 
     fireEvent.change(screen.getByLabelText("Email"), {
-      target: { value: "demo@pomotime.local" },
+      target: { value: "user@example.com" },
     });
     fireEvent.change(screen.getByLabelText("Password"), {
-      target: { value: "demo-password" },
+      target: { value: "secret123" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Login" }));
 
-    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
-    expect(screen.getByTestId("command-status")).toHaveTextContent("Command:");
+    // Force-submit the form despite the disabled button to assert the service
+    // refuses to create a session without Supabase.
+    const form = submitButton().closest("form") as HTMLFormElement;
+    fireEvent.submit(form);
+
+    expect(await screen.findByTestId("auth-flash-message")).toHaveTextContent(
+      "Supabase configuration required to sign in."
+    );
   });
 
   it("shows validation error when login fields are empty", async () => {
     render(<App />);
     await screen.findByRole("heading", { name: "Login" });
 
-    fireEvent.change(screen.getByLabelText("Email"), {
-      target: { value: "" },
-    });
-    fireEvent.change(screen.getByLabelText("Password"), {
-      target: { value: "" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Login" }));
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "" } });
+
+    const form = submitButton().closest("form") as HTMLFormElement;
+    fireEvent.submit(form);
 
     expect(await screen.findByTestId("auth-flash-message")).toHaveTextContent(
       "Email and password are required"
@@ -73,43 +84,8 @@ describe("App", () => {
     fireEvent.click(screen.getByRole("button", { name: "Hide password" }));
     expect(passwordInput.type).toBe("password");
   });
-
-  it("restores previous demo session on startup", async () => {
-    sessionStorage.setItem(
-      "pomotime.auth.demo-session",
-      JSON.stringify({
-        userId: "demo-restored-user",
-        email: "restored@pomotime.local",
-        displayName: "Restored User",
-        provider: "demo",
-      })
-    );
-
-    render(<App />);
-
-    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
-  });
-
-  it("navigates across all main views without crashing", async () => {
-    render(<App />);
-    await screen.findByRole("heading", { name: "Login" });
-
-    fireEvent.click(screen.getByRole("button", { name: "Login" }));
-    await screen.findByRole("heading", { name: "Dashboard" });
-
-    fireEvent.click(screen.getByRole("link", { name: "Onboarding" }));
-    expect(await screen.findByRole("heading", { name: "Onboarding" })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("link", { name: "Session Timer" }));
-    expect(await screen.findByRole("heading", { name: "Timer" })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("link", { name: "History" }));
-    expect(await screen.findByRole("heading", { name: "History" })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("link", { name: "Goal Settings" }));
-    expect(await screen.findByRole("heading", { name: "Goals" })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("link", { name: "Dashboard" }));
-    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
-  });
 });
+
+function submitButton(): HTMLButtonElement {
+  return screen.getByRole("button", { name: "Login" }) as HTMLButtonElement;
+}

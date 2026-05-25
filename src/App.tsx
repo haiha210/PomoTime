@@ -5,7 +5,7 @@ import { isSupabaseConfigured } from "./core/config/supabaseConfig";
 import { logoutCurrentSession, restoreSession, subscribeToAuthChanges } from "./features/auth/authService";
 import type { AuthSession } from "./features/auth/authTypes";
 import { migrateLegacyLocalStorageData } from "./lib/legacyMigration";
-import { isTauriRuntimeAvailable, tauriCommands } from "./lib/tauriCommands";
+import { tauriCommands } from "./lib/tauriCommands";
 
 function App(): React.JSX.Element {
   const hasSupabaseConfig = isSupabaseConfigured();
@@ -48,16 +48,25 @@ function App(): React.JSX.Element {
   useEffect(() => {
     let active = true;
 
-    if (!isTauriRuntimeAvailable()) {
-      setCommandStatus("web-preview");
+    if (!hasSupabaseConfig) {
+      setCommandStatus("no-supabase");
       return () => {
         active = false;
       };
     }
 
-    migrateLegacyLocalStorageData("demo-user")
+    if (!session?.userId) {
+      setCommandStatus("awaiting-auth");
+      return () => {
+        active = false;
+      };
+    }
+
+    const currentUserId = session.userId;
+
+    migrateLegacyLocalStorageData(currentUserId)
       .catch(() => undefined)
-      .then(() => tauriCommands.listGoals("demo-user"))
+      .then(() => tauriCommands.listGoals(currentUserId))
       .then((response) => {
         if (!active) {
           return;
@@ -74,7 +83,7 @@ function App(): React.JSX.Element {
     return () => {
       active = false;
     };
-  }, []);
+  }, [hasSupabaseConfig, session?.userId]);
 
   function handleLogout(): void {
     logoutCurrentSession()

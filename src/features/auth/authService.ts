@@ -3,7 +3,9 @@ import type { User } from "@supabase/supabase-js";
 import { getSupabaseClient } from "../../core/supabase/client";
 
 import type { AuthSession } from "./authTypes";
-import { clearDemoSession, loadDemoSession, saveDemoSession } from "./sessionStore";
+import { clearDemoSession } from "./sessionStore";
+
+const SUPABASE_REQUIRED_ERROR = "Supabase configuration required to sign in.";
 
 export interface AuthResult {
   session?: AuthSession;
@@ -81,15 +83,7 @@ export async function loginWithEmailPassword(
   const supabaseClient = getSupabaseClient();
 
   if (!supabaseClient) {
-    const session = {
-      userId: `demo-${normalizedEmail.toLowerCase()}`,
-      email: normalizedEmail,
-      displayName: displayNameFromEmail(normalizedEmail),
-      provider: "demo" as const,
-    };
-
-    saveDemoSession(session);
-    return { session };
+    return { error: SUPABASE_REQUIRED_ERROR };
   }
 
   const { data, error } = await supabaseClient.auth.signInWithPassword({
@@ -121,15 +115,7 @@ export async function loginWithEmailPassword(
 export async function loginWithGoogle(): Promise<AuthResult> {
   const supabaseClient = getSupabaseClient();
   if (!supabaseClient) {
-    const session = {
-      userId: "demo-google-user",
-      email: "google-demo@pomotime.local",
-      displayName: "Google Demo",
-      provider: "demo" as const,
-    };
-
-    saveDemoSession(session);
-    return { session };
+    return { error: SUPABASE_REQUIRED_ERROR };
   }
 
   const { error } = await supabaseClient.auth.signInWithOAuth({
@@ -161,15 +147,7 @@ export async function registerWithEmailPassword(
   const normalizedDisplayName = String(displayName || "").trim();
 
   if (!supabaseClient) {
-    const session = {
-      userId: `demo-${email.toLowerCase()}`,
-      email,
-      displayName: normalizedDisplayName || displayNameFromEmail(email),
-      provider: "demo" as const,
-    };
-
-    saveDemoSession(session);
-    return { session };
+    return { error: SUPABASE_REQUIRED_ERROR };
   }
 
   const { data, error } = await supabaseClient.auth.signUp({
@@ -200,7 +178,7 @@ export async function restoreSession(): Promise<AuthSession | null> {
   const supabaseClient = getSupabaseClient();
 
   if (!supabaseClient) {
-    return loadDemoSession();
+    return null;
   }
 
   const { data, error } = await supabaseClient.auth.getSession();

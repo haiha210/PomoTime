@@ -12,8 +12,8 @@ type FlashTone = "success" | "error";
 
 export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.JSX.Element {
   const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState(hasSupabaseConfig ? "" : "demo@pomotime.local");
-  const [password, setPassword] = useState(hasSupabaseConfig ? "" : "demo-password");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [flashMessage, setFlashMessage] = useState("");
@@ -24,7 +24,7 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
   const secondaryLabel = mode === "login" ? "Need an account? Create one" : "Already have an account? Login";
   const helperText = useMemo(() => {
     if (!hasSupabaseConfig) {
-      return "Demo mode is active because Supabase runtime config is missing.";
+      return "Supabase is not configured. Set VITE_POMOTIME_SUPABASE_URL and VITE_POMOTIME_SUPABASE_PUBLISHABLE_KEY to sign in.";
     }
 
     return mode === "login"
@@ -109,7 +109,7 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
           <h2>{title}</h2>
           <p className="muted">{helperText}</p>
           <p className="status-line" data-testid="supabase-mode">
-            Supabase mode: {hasSupabaseConfig ? "configured" : "demo"}
+            Supabase mode: {hasSupabaseConfig ? "configured" : "missing"}
           </p>
 
           {flashMessage ? (
@@ -188,13 +188,17 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
             </label>
 
             <div className="btn-row">
-              <button type="submit" className="btn primary" disabled={isSubmitting}>
+              <button
+                type="submit"
+                className="btn primary"
+                disabled={isSubmitting || !hasSupabaseConfig}
+              >
                 {submitLabel}
               </button>
               <button
                 type="button"
                 className="btn secondary"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !hasSupabaseConfig}
                 onClick={() => {
                   setMode((current) => (current === "login" ? "signup" : "login"));
                   setIsPasswordVisible(false);
@@ -209,7 +213,12 @@ export function AuthView({ hasSupabaseConfig, onLogin }: AuthViewProps): React.J
           <div className="login-divider">or</div>
 
           <div className="btn-row">
-            <button type="button" className="btn google" onClick={handleGoogleLogin} disabled={isSubmitting}>
+            <button
+              type="button"
+              className="btn google"
+              onClick={handleGoogleLogin}
+              disabled={isSubmitting || !hasSupabaseConfig}
+            >
               <svg className="google-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <path
                   fill="#4285F4"

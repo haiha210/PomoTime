@@ -1,3 +1,4 @@
+import { isSupabaseConfigured } from "../core/config/supabaseConfig";
 import { tauriCommands } from "./tauriCommands";
 
 const STORAGE_PREFIX = "pomotime.v2.user";
@@ -115,10 +116,6 @@ function migrationMarkerKey(userId: string): string {
   return storageKeyForUser(MIGRATION_MARKER_PREFIX, userId);
 }
 
-function isTauriAvailable(): boolean {
-  return Boolean(window.__TAURI__?.core?.invoke);
-}
-
 export async function migrateLegacyLocalStorageData(
   userId: string
 ): Promise<LegacyMigrationResult> {
@@ -156,10 +153,10 @@ export async function migrateLegacyLocalStorageData(
     };
   }
 
-  if (!isTauriAvailable()) {
+  if (!isSupabaseConfigured()) {
     return {
       migrated: false,
-      reason: "tauri-unavailable",
+      reason: "supabase-unavailable",
       goalsMigrated: 0,
       subjectsMigrated: 0,
       sessionsMigrated: 0,

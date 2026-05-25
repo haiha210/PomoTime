@@ -1,4 +1,20 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { isSupabaseConfigured } from "../core/config/supabaseConfig";
 import { migrateLegacyLocalStorageData } from "./legacyMigration";
+import { tauriCommands } from "./tauriCommands";
+
+vi.mock("../core/config/supabaseConfig", () => ({
+  isSupabaseConfigured: vi.fn(),
+}));
+
+vi.mock("./tauriCommands", () => ({
+  tauriCommands: {
+    createSubject: vi.fn(),
+    createGoal: vi.fn(),
+    saveStoppedTimer: vi.fn(),
+  },
+}));
 
 describe("legacyMigration", () => {
   const userId = "Demo User";
@@ -6,10 +22,18 @@ describe("legacyMigration", () => {
 
   beforeEach(() => {
     localStorage.clear();
-    delete (window as Window & { __TAURI__?: unknown }).__TAURI__;
+    vi.mocked(isSupabaseConfigured).mockReset();
+    vi.mocked(tauriCommands.createSubject).mockReset();
+    vi.mocked(tauriCommands.createGoal).mockReset();
+    vi.mocked(tauriCommands.saveStoppedTimer).mockReset();
   });
 
-  it("skips migration when Tauri runtime is unavailable", async () => {
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  it("skips migration when Supabase is unavailable", async () => {
+    vi.mocked(isSupabaseConfigured).mockReturnValue(false);
     localStorage.setItem(
       storageKey,
       JSON.stringify({
@@ -30,11 +54,50 @@ describe("legacyMigration", () => {
     const result = await migrateLegacyLocalStorageData(userId);
 
     expect(result.migrated).toBe(false);
-    expect(result.reason).toBe("tauri-unavailable");
+    expect(result.reason).toBe("supabase-unavailable");
     expect(localStorage.getItem(storageKey)).not.toBeNull();
   });
 
   it("migrates goals, subjects, and sessions then marks migration as done", async () => {
+    vi.mocked(isSupabaseConfigured).mockReturnValue(true);
+    vi.mocked(tauriCommands.createSubject).mockResolvedValue({
+      success: true,
+      data: {
+        id: "subject-new-1",
+        user_id: "demo-user",
+        name: "English",
+        color: null,
+      },
+    });
+    vi.mocked(tauriCommands.createGoal).mockResolvedValue({
+      success: true,
+      data: {
+        id: "goal-new-1",
+        user_id: "demo-user",
+        title: "Legacy goal",
+        description: null,
+        goal_type: "custom",
+        start_date: "2026-01-01",
+        end_date: "2026-01-07",
+        is_active: true,
+      },
+    });
+    vi.mocked(tauriCommands.saveStoppedTimer).mockResolvedValue({
+      success: true,
+      data: {
+        id: "session-new-1",
+        user_id: "demo-user",
+        goal_id: "goal-new-1",
+        subject_id: "subject-new-1",
+        title: "Legacy session",
+        note: "Migrated",
+        start_time: "2026-01-02T00:00:00.000Z",
+        end_time: "2026-01-02T00:30:00.000Z",
+        duration_minutes: 30,
+        work_mode: "focus_clock",
+      },
+    });
+
     localStorage.setItem(
       storageKey,
       JSON.stringify({
@@ -63,28 +126,6 @@ describe("legacyMigration", () => {
       })
     );
 
-    const invoke = vi.fn(async (command: string) => {
-      if (command === "create_subject") {
-        return { success: true, data: { id: "subject-new-1" } };
-      }
-
-      if (command === "create_goal") {
-        return { success: true, data: { id: "goal-new-1" } };
-      }
-
-      if (command === "save_stopped_timer") {
-        return { success: true, data: { id: "session-new-1" } };
-      }
-
-      return { success: false, error: `unexpected:${command}` };
-    });
-
-    (window as Window & { __TAURI__?: unknown }).__TAURI__ = {
-      core: {
-        invoke: invoke as unknown as TauriCore["invoke"],
-      },
-    };
-
     const result = await migrateLegacyLocalStorageData(userId);
 
     expect(result.migrated).toBe(true);
@@ -92,13 +133,10 @@ describe("legacyMigration", () => {
     expect(result.subjectsMigrated).toBe(1);
     expect(result.sessionsMigrated).toBe(1);
 
-    expect(invoke).toHaveBeenCalledWith(
-      "save_stopped_timer",
+    expect(tauriCommands.saveStoppedTimer).toHaveBeenCalledWith(
       expect.objectContaining({
-        input: expect.objectContaining({
-          goal_id: "goal-new-1",
-          subject_id: "subject-new-1",
-        }),
+        goalId: "goal-new-1",
+        subjectId: "subject-new-1",
       })
     );
 
