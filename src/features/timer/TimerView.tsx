@@ -3,7 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { tauriCommands, type GoalRecord, type SubjectRecord } from "../../lib/tauriCommands";
 import { playPhaseEndChime } from "../../shared/utils/timerSound";
 
-import { useTimerStateMachine, type PhaseTransitionEvent } from "./useTimerStateMachine";
+import { useTimerContext } from "./TimerProvider";
+import type { PhaseTransitionEvent } from "./useTimerStateMachine";
 
 const SOUND_PREF_KEY = "pomotime.timer.soundEnabled";
 const BREAK_PREF_KEY = "pomotime.timer.breakMinutes";
@@ -107,11 +108,11 @@ export function TimerView({ userId }: TimerViewProps): React.JSX.Element {
     [note, selectedGoalId, selectedSubjectId, soundEnabled, title, userId]
   );
 
-  const timer = useTimerStateMachine({
-    onPhaseTransition: handlePhaseTransition,
-    initialWorkMinutes: tomatoMinutes,
-    initialBreakMinutes: breakMinutes,
-  });
+  const { timer, registerPhaseHandler } = useTimerContext();
+
+  useEffect(() => {
+    registerPhaseHandler(handlePhaseTransition);
+  }, [handlePhaseTransition, registerPhaseHandler]);
 
   const selectedGoal = useMemo(
     () => goals.find((goal) => goal.id === selectedGoalId) || null,

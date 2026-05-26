@@ -280,6 +280,91 @@ body::before {
   font-weight: 600;
 }
 
+.timer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  padding: 6px 12px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.timer-badge:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.timer-badge-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.timer-badge-clock {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.timer-badge-phase {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.timer-badge-idle {
+  opacity: 0.7;
+}
+
+.timer-badge-running {
+  border-color: #c7e5e1;
+  background: #ecf8f6;
+  color: #0d5f58;
+}
+
+.timer-badge-running .timer-badge-phase {
+  color: #0d5f58;
+}
+
+.timer-badge-running .timer-badge-icon {
+  animation: timer-badge-pulse 1.4s ease-in-out infinite;
+}
+
+.timer-badge-paused {
+  border-color: #f5d6a5;
+  background: #fff6e7;
+  color: #7a4d10;
+}
+
+.timer-badge-paused .timer-badge-phase {
+  color: #7a4d10;
+}
+
+.timer-badge-break {
+  border-color: #d6c7e5;
+  background: #f3eefa;
+  color: #4f377a;
+}
+
+.timer-badge-break .timer-badge-phase {
+  color: #4f377a;
+}
+
+@keyframes timer-badge-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
 .chip-muted {
   border-color: #d9dde2;
   background: #f5f7f9;

@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 
 import type { AuthSession } from "../features/auth/authTypes";
+import { TimerBadge } from "../features/timer/TimerBadge";
+import { TimerProvider } from "../features/timer/TimerProvider";
 import { tauriCommands, type SessionRecord } from "../lib/tauriCommands";
 import { toLocalIsoDate } from "../shared/utils/dateTime";
 
@@ -54,8 +56,9 @@ function calculateCurrentStreak(sessions: SessionRecord[]): number {
     studiedByDate[isoDate] = (studiedByDate[isoDate] || 0) + Math.max(0, session.duration_minutes);
   });
 
+  const today = toLocalIsoDate(new Date());
+  let cursor = (studiedByDate[today] || 0) > 0 ? today : addLocalDays(today, -1);
   let streak = 0;
-  let cursor = toLocalIsoDate(new Date());
 
   while ((studiedByDate[cursor] || 0) > 0) {
     streak += 1;
@@ -131,6 +134,7 @@ export function MainLayout({ commandStatus, session, onLogout }: MainLayoutProps
   }, [session.userId]);
 
   return (
+    <TimerProvider>
     <div className={isSidebarHidden ? "app-shell sidebar-hidden" : "app-shell"}>
       <aside className="sidebar">
         <div className="brand">
@@ -190,6 +194,7 @@ export function MainLayout({ commandStatus, session, onLogout }: MainLayoutProps
           </div>
 
           <div className="btn-row">
+            <TimerBadge />
             <span className="streak-chip">Current streak: {streak} days</span>
             <div className="topbar-user">
               <div className="topbar-user-avatar">
@@ -216,5 +221,6 @@ export function MainLayout({ commandStatus, session, onLogout }: MainLayoutProps
         </div>
       </main>
     </div>
+    </TimerProvider>
   );
 }

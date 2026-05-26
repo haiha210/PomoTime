@@ -86,8 +86,8 @@ function previousIsoDate(isoDate: string): string {
 }
 
 function calculateStreakFromDateSet(dateSet: Set<string>, endIsoDate: string): number {
+  let cursor = dateSet.has(endIsoDate) ? endIsoDate : previousIsoDate(endIsoDate);
   let streak = 0;
-  let cursor = endIsoDate;
 
   while (dateSet.has(cursor)) {
     streak += 1;
